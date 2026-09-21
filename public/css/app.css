@@ -28,9 +28,7 @@
   color: var(--text-2); font-size: .94rem; font-weight: 500;
   transition: color var(--dur) var(--ease-apple), background var(--dur) var(--ease-apple);
 }
-.side-nav a .ico { flex: none; opacity: .7; transition: opacity var(--dur) var(--ease-apple); }
-.side-nav a:hover .ico, .side-nav a.active .ico { opacity: 1; }
-.side-nav a.active .ico { color: var(--accent); }
+.side-nav a i { width: 20px; text-align: center; font-style: normal; opacity: .75; }
 .side-nav a:hover { color: var(--text); background: var(--surface); }
 .side-nav a.active { color: var(--text); background: var(--surface-2); }
 .side-nav a.active::before {
@@ -128,9 +126,7 @@
   transition: transform var(--dur) var(--ease-apple), border-color var(--dur), background var(--dur);
 }
 .lecture-card:hover { transform: translateY(-3px); border-color: var(--hairline-strong); background: var(--surface-2); }
-.lecture-card h3 { font-size: 1rem; font-weight: 580; letter-spacing: -0.018em; line-height: 1.3;
-  display: flex; align-items: center; gap: 9px; }
-.lecture-card h3 .ico { flex: none; color: var(--accent); }
+.lecture-card h3 { font-size: 1rem; font-weight: 580; letter-spacing: -0.018em; line-height: 1.3; }
 .lecture-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--text-3); font-size: .78rem; }
 .lecture-progress { height: 4px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
 .lecture-progress i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue), var(--violet)); transition: width .7s var(--ease-apple); }

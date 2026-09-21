@@ -57,8 +57,7 @@
 
 /* Painel flutuante */
 .hero-panel { position: relative; transform: translateY(var(--parallax, 0)); }
-.panel { overflow: hidden; border-radius: var(--r-xl);
-  background: color-mix(in oklab, var(--ink-800) 74%, transparent); }
+.panel { overflow: hidden; border-radius: var(--r-xl); }
 .panel > [data-tilt-inner] { will-change: transform; }
 .panel-glow {
   position: absolute; inset: 8% 12% -6%; z-index: -1; border-radius: 50%;
@@ -78,11 +77,7 @@
 @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .25; transform: scale(.8); } }
 
 .panel-body { padding: 18px; display: grid; gap: 14px; }
-.panel-live {
-  padding: 15px; border-radius: var(--r-md);
-  background: color-mix(in oklab, var(--ink-700) 78%, transparent);
-  border: 1px solid var(--hairline);
-}
+.panel-live { padding: 15px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--hairline); }
 .live-head { align-items: flex-start; margin-bottom: 10px; }
 .timer { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .wave { width: 100%; height: 54px; }
@@ -95,8 +90,7 @@
 .panel-out { display: grid; gap: 10px; }
 .out-card {
   padding: 13px 15px; border-radius: var(--r-md);
-  background: color-mix(in oklab, var(--ink-700) 78%, transparent);
-  border: 1px solid var(--hairline);
+  background: var(--surface); border: 1px solid var(--hairline);
   font-size: .85rem; color: var(--text-2); opacity: 0;
 }
 .out-card p { margin-top: 8px; }

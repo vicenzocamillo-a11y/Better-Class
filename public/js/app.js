@@ -298,15 +298,15 @@ route('inicio', async (node) => {
       <div class="section-title"><h2>Próximo passo</h2></div>
       <div class="cards">
         <a class="lecture-card" href="#/gravar">
-          <h3><svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.6"/><circle cx="8" cy="8" r="2.2" fill="currentColor" stroke="none"/></svg> Gravar a aula de agora</h3>
+          <h3>◉ Gravar a aula de agora</h3>
           <p class="small muted">Deixa rodando em segundo plano. O material chega sozinho no fim.</p>
         </a>
         <a class="lecture-card" href="#/revisar">
-          <h3><svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.2 8a5.2 5.2 0 1 1-1.7-3.9"/><path d="M13.4 2.6v3.1h-3.1"/></svg> Revisar ${stats.due} card${stats.due === 1 ? '' : 's'}</h3>
+          <h3>↺ Revisar ${stats.due} card${stats.due === 1 ? '' : 's'}</h3>
           <p class="small muted">${stats.due ? 'Vencem hoje — 5 minutos resolvem.' : 'Nada vencendo agora. Volte amanhã.'}</p>
         </a>
         <button class="lecture-card" data-import style="text-align:left">
-          <h3><svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10.8V2.9"/><path d="M5.2 5.7 8 2.9l2.8 2.8"/><path d="M2.8 10v2.6a.5.5 0 0 0 .5.5h9.4a.5.5 0 0 0 .5-.5V10"/></svg> Importar uma aula em texto</h3>
+          <h3>⇪ Importar uma aula em texto</h3>
           <p class="small muted">Já tem a transcrição ou as anotações? A IA monta o resto.</p>
         </button>
       </div>

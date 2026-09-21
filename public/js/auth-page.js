@@ -32,6 +32,14 @@ const pill = document.getElementById('tabPill');
 const hint = document.getElementById('switchHint');
 
 /* O botão do Google só aparece se o servidor tiver as credenciais */
+const MOTIVOS = {
+  'google-desligado': 'O login com o Google não está configurado neste servidor.',
+  'google-cancelado': 'Você cancelou a autorização no Google.',
+  'estado-invalido': 'A sessão de login expirou. Tente novamente.',
+  'sem-codigo': 'O Google não devolveu o código de autorização.',
+  'google-falhou': 'Não consegui concluir o login pelo Google. Tente de novo.',
+};
+
 api.authConfig()
   .then(({ google }) => {
     if (!google) return;
@@ -47,15 +55,6 @@ googleBtn.addEventListener('click', () => {
   googleLabel.textContent = 'Abrindo o Google…';
   location.href = '/api/auth/google';
 });
-
-/* Quando o Google devolve um erro, ele volta na URL */
-const MOTIVOS = {
-  'google-desligado': 'O login com o Google não está configurado neste servidor.',
-  'google-cancelado': 'Você cancelou a autorização no Google.',
-  'estado-invalido': 'A sessão de login expirou. Tente novamente.',
-  'sem-codigo': 'O Google não devolveu o código de autorização.',
-  'google-falhou': 'Não consegui concluir o login pelo Google. Tente de novo.',
-};
 
 let mode = location.pathname === '/criar-conta' ? 'register' : 'login';
 
