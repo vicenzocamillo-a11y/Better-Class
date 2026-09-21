@@ -23,7 +23,7 @@ também não serve (dorme e não tem disco).
 | Variável | Valor | Observação |
 | --- | --- | --- |
 | `NODE_ENV` | `production` | liga o cookie `Secure` — exige HTTPS |
-| `SESSION_SECRET` | string aleatória **fixa** | se mudar a cada deploy, todo mundo é deslogado |
+| `SESSION_SECRET` | string aleatória fixa | **opcional**: se não definir, o servidor gera um e guarda em `<DATA_DIR>/.session-secret`, e as sessões sobrevivem aos deploys |
 | `DATA_DIR` | `/data` | aponte para o volume persistente |
 | `PORT` | injetado pela plataforma | o servidor já respeita |
 | `HOST` | `0.0.0.0` | já é o padrão |
@@ -31,22 +31,40 @@ também não serve (dorme e não tem disco).
 | `ANTHROPIC_MODEL` | `claude-opus-5` | opcional |
 | `TRANSCRIBE_URL` / `TRANSCRIBE_KEY` | endpoint Whisper | opcional |
 
-Gere o segredo com:
+Se quiser definir o `SESSION_SECRET` você mesmo:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
+Sem terminal à mão, deixe a variável de fora — o servidor resolve sozinho, desde que o
+volume persistente esteja montado.
+
+---
+
+## Sem terminal (Chromebook, tablet, computador do trabalho)
+
+Railway e Render fazem o deploy inteiro pelo navegador: você conecta o repositório do
+GitHub, define as variáveis e monta o volume por formulário. Fly.io e VPS precisam de
+linha de comando — deixe para depois.
+
+Se em algum momento precisar de um terminal, o **GitHub Codespaces** abre um no próprio
+Chrome (botão verde *Code → Codespaces → Create codespace*), com Node e Git prontos.
+
 ---
 
 ## Opção 1 — Railway (mais rápido)
 
-1. Suba o repositório para o GitHub.
+Tudo pelo navegador, sem instalar nada.
+
+1. Suba o repositório para o GitHub (ou use o que já está lá).
 2. Em [railway.app](https://railway.app): **New Project → Deploy from GitHub repo** e escolha o repositório.
    O `railway.json` já manda usar o `Dockerfile` e o healthcheck `/api/health`.
-3. Aba **Variables** → adicione `SESSION_SECRET`, `DATA_DIR=/data` e, se quiser IA, `ANTHROPIC_API_KEY`.
-   (`NODE_ENV` e `PORT` a plataforma já resolve.)
-4. Aba **Settings → Volumes** → **Add Volume**, ponto de montagem **`/data`**, tamanho 10 GB.
+   Se o código estiver em outra branch, ajuste em **Settings → Source → Branch**.
+3. **Settings → Volumes → Add Volume**, ponto de montagem **`/data`**, tamanho 10 GB.
+   Faça isso antes do primeiro acesso: é onde ficam o banco e os áudios.
+4. Aba **Variables** → `DATA_DIR=/data` e, se quiser IA, `ANTHROPIC_API_KEY`.
+   (`NODE_ENV`, `PORT` e o segredo de sessão a aplicação resolve sozinha.)
 5. **Settings → Networking → Generate Domain** para receber o subdomínio HTTPS.
 6. Abra o domínio, crie sua conta e grave uma aula de teste.
 

@@ -29,6 +29,30 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 for (const dir of [DATA_DIR, UPLOAD_DIR]) fs.mkdirSync(dir, { recursive: true });
 
+/**
+ * Segredo das sessões. Sem a variável de ambiente, geramos um e guardamos
+ * junto do banco — assim as sessões sobrevivem a reinícios e deploys mesmo
+ * para quem instala pelo navegador, sem terminal à mão.
+ */
+function resolveSessionSecret() {
+  const fromEnv = (process.env.SESSION_SECRET || '').trim();
+  if (fromEnv && fromEnv !== 'troque-este-segredo-em-producao') return fromEnv;
+
+  const file = path.join(DATA_DIR, '.session-secret');
+  try {
+    const saved = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim() : '';
+    if (saved) return saved;
+    const generated = crypto.randomBytes(32).toString('hex');
+    fs.writeFileSync(file, generated, { mode: 0o600 });
+    console.log('  SESSION_SECRET não definido — gerei um e guardei em <DATA_DIR>/.session-secret');
+    return generated;
+  } catch {
+    // Disco somente-leitura: funciona, mas as sessões caem a cada reinício.
+    console.warn('  Não consegui guardar o SESSION_SECRET — defina a variável para não deslogar todo mundo nos reinícios.');
+    return crypto.randomBytes(32).toString('hex');
+  }
+}
+
 export const config = {
   port: Number(process.env.PORT || 3000),
   host: process.env.HOST || '0.0.0.0',
@@ -36,7 +60,7 @@ export const config = {
   uploadDir: UPLOAD_DIR,
   publicDir: path.join(ROOT, 'public'),
   dbFile: path.join(DATA_DIR, 'better-class.db'),
-  sessionSecret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  sessionSecret: resolveSessionSecret(),
   sessionDays: 30,
   maxChunkBytes: Number(process.env.MAX_CHUNK_BYTES || 15 * 1024 * 1024),
   ai: {

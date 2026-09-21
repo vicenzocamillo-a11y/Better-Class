@@ -18,7 +18,7 @@ Precisa apenas de **Node.js 22.5 ou superior**. Não há dependências para inst
 o banco é o `node:sqlite` embutido e o front-end é JavaScript moderno sem build.
 
 ```bash
-cp .env.example .env          # ajuste o SESSION_SECRET
+cp .env.example .env          # opcional: só para configurar a chave de IA
 npm start                     # http://localhost:3000
 ```
 
