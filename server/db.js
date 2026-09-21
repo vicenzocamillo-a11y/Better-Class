@@ -1,4 +1,14 @@
-import { DatabaseSync } from 'node:sqlite';
+let DatabaseSync;
+try {
+  ({ DatabaseSync } = await import('node:sqlite'));
+} catch {
+  console.error(
+    '\n  Este projeto precisa do Node 22.13 ou superior (o módulo node:sqlite é nativo).\n' +
+    `  Versão encontrada: ${process.version}. Atualize o Node e tente de novo.\n`,
+  );
+  process.exit(1);
+}
+
 import crypto from 'node:crypto';
 import { config } from './config.js';
 

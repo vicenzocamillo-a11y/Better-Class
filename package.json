@@ -4,7 +4,9 @@
   "private": true,
   "description": "Better Class — grave a aula em segundo plano, deixe a IA transformar em resumo, apontamentos e revisão.",
   "type": "module",
-  "engines": { "node": ">=22.5.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "start": "node --no-warnings server/index.js",
     "dev": "node --no-warnings --watch server/index.js",
@@ -12,6 +14,13 @@
     "check": "node --no-warnings server/scripts/check.js"
   },
   "dependencies": {},
-  "keywords": ["estudo", "faculdade", "ia", "gravacao", "resumo", "flashcards"],
+  "keywords": [
+    "estudo",
+    "faculdade",
+    "ia",
+    "gravacao",
+    "resumo",
+    "flashcards"
+  ],
   "license": "MIT"
 }

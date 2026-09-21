@@ -55,6 +55,13 @@ Chrome (botão verde *Code → Codespaces → Create codespace*), com Node e Git
 
 ## Opção 1 — Railway (mais rápido)
 
+> O repositório já vem com `Dockerfile`, `railway.json` e `nixpacks.toml` prontos.
+> Nada precisa ser editado antes do deploy.
+>
+> **Atenção ao mexer no Dockerfile:** o Railway **recusa a instrução `VOLUME`**
+> (*"docker VOLUME is not supported, use Railway Volumes"*). O disco é montado
+> pelo painel, não pelo Dockerfile.
+
 Tudo pelo navegador, sem instalar nada.
 
 1. Suba o repositório para o GitHub (ou use o que já está lá).
@@ -69,6 +76,16 @@ Tudo pelo navegador, sem instalar nada.
 6. Abra o domínio, crie sua conta e grave uma aula de teste.
 
 Domínio próprio: **Settings → Custom Domain**, e aponte um `CNAME` para o host que o Railway mostrar.
+
+### Se algo der errado
+
+| Mensagem | O que fazer |
+| --- | --- |
+| `docker VOLUME at Line N is not supported` | alguém reintroduziu `VOLUME` no Dockerfile — remova a linha |
+| Build sobe mas o deploy fica *unhealthy* | confira se a porta não foi fixada à mão: a aplicação já escuta a `PORT` injetada pela plataforma |
+| `ERR_UNKNOWN_BUILTIN_MODULE node:sqlite` | Node antigo demais: o projeto exige 22.13+ (o `Dockerfile` já usa `node:22-alpine`) |
+| App funciona, mas as aulas somem a cada deploy | o volume não está montado em `/data` — **Settings → Volumes** |
+| Login não fica salvo | acesso por `http://` em vez do domínio `https://` da plataforma |
 
 ## Opção 2 — Fly.io (região São Paulo)
 

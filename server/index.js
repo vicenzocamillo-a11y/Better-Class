@@ -117,6 +117,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`\n  Better Class  ·  http://localhost:${config.port}`);
     console.log(`  IA: ${engine}`);
     console.log(`  Transcrição no servidor: ${serverTranscriptionEnabled() ? 'ligada' : 'desligada (usa o navegador)'}`);
+    console.log(`  Dados (banco e áudios): ${config.dataDir}`);
     if (resumed) console.log(`  ${resumed} processamento(s) retomado(s).`);
     console.log('');
   });
