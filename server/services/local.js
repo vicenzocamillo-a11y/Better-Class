@@ -23,29 +23,46 @@ export function splitSentences(text) {
     .filter((s) => s.length > 24);
 }
 
-export function tokenize(text) {
-  return clean(text)
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .split(/[^a-z0-9çãõáéíóúâêô-]+/i)
-    .filter((w) => w.length > 3 && !STOPWORDS.has(w) && !/^\d+$/.test(w));
+const deaccent = (word) => word.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/** Palavras relevantes preservando a grafia original (com acentos). */
+function words(text) {
+  return clean(text).toLowerCase()
+    .split(/[^\p{L}\p{N}-]+/u)
+    .filter((word) => word.length > 3 && !STOPWORDS.has(deaccent(word)) && !/^[\d-]+$/.test(word));
 }
 
+/** Tokens normalizados — usados para pontuar frases. */
+export function tokenize(text) {
+  return words(text).map(deaccent);
+}
+
+/** Termos-chave (uni e bigramas) devolvidos na grafia original. */
 export function keywords(text, limit = 14) {
   const freq = new Map();
-  for (const word of tokenize(text)) freq.set(word, (freq.get(word) || 0) + 1);
-  // bigramas relevantes
-  const words = tokenize(text);
-  for (let i = 0; i < words.length - 1; i++) {
-    const pair = `${words[i]} ${words[i + 1]}`;
-    freq.set(pair, (freq.get(pair) || 0) + 1.4);
-  }
+  const forms = new Map();
+  const list = words(text);
+
+  const bump = (key, form, weight) => {
+    freq.set(key, (freq.get(key) || 0) + weight);
+    if (!forms.has(key)) forms.set(key, form);
+  };
+
+  list.forEach((word, i) => {
+    bump(deaccent(word), word, 1);
+    if (i < list.length - 1) {
+      const pair = `${word} ${list[i + 1]}`;
+      bump(deaccent(pair), pair, 1.4);
+    }
+  });
+
   return [...freq.entries()]
-    .filter(([term, count]) => count > (term.includes(' ') ? 2 : 1))
+    .filter(([key, count]) => count > (key.includes(' ') ? 2 : 1))
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([term]) => term);
+    .map(([key]) => forms.get(key));
 }
+
 
 function scoreSentences(sentences, text) {
   const weights = new Map();
@@ -85,11 +102,29 @@ function chunk(array, parts) {
 
 const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function sectionTitle(sentences, fallback) {
-  const terms = keywords(sentences.join(' '), 3);
-  if (!terms.length) return fallback;
-  return titleCase(terms.slice(0, 2).join(' e '));
+/** Assunto de UMA frase — não depende de repetição, ao contrário de keywords(). */
+function topicOf(sentence) {
+  const list = words(sentence);
+  if (!list.length) return '';
+  let best = 0;
+  list.forEach((word, i) => { if (word.length > list[best].length) best = i; });
+  const next = list[best + 1];
+  return titleCase(next && next.length > 4 ? `${list[best]} ${next}` : list[best]);
 }
+
+function sectionTitle(sentences, fallback) {
+  const terms = keywords(sentences.join(' '), 5);
+  if (!terms.length) return fallback;
+  const main = terms.find((term) => term.includes(' ')) || terms[0];
+  // evita títulos repetitivos do tipo "Sangue e sangue ventrículo"
+  const other = terms.find((term) => term !== main && !overlaps(term, main));
+  return titleCase(other ? `${main} e ${other}` : main);
+}
+
+const overlaps = (a, b) => {
+  const wordsA = new Set(a.split(' '));
+  return b.split(' ').some((word) => wordsA.has(word));
+};
 
 function definitions(text) {
   const out = [];
@@ -97,7 +132,7 @@ function definitions(text) {
     const match = sentence.match(/^(.{4,70}?)\s+(?:é|são|significa|consiste em|define-se como|chama-se|trata-se de)\s+(.{20,260})$/i);
     if (match) {
       const term = clean(match[1]).replace(/^(o|a|os|as|um|uma|esse|essa|este|esta)\s+/i, '');
-      if (term.split(' ').length <= 7) out.push({ term: titleCase(term), definition: clean(match[2]) });
+      if (term.split(' ').length <= 7) out.push({ term: titleCase(term), definition: titleCase(clean(match[2])) });
     }
   }
   const seen = new Set();
@@ -156,9 +191,9 @@ export function analyseLocally({ title, transcript, durationMs = 0 }) {
 
   const cards = [
     ...defs.map((d) => ({ front: `O que é ${d.term}?`, back: d.definition })),
-    ...highlights.slice(0, 6).map((s) => ({
-      front: `Explique com suas palavras: ${keywords(s, 2).map(titleCase).join(' / ') || 'a ideia central'}`,
-      back: s,
+    ...highlights.slice(0, 6).map((sentence) => ({
+      front: `Explique com suas palavras: ${topicOf(sentence) || 'a ideia central desta parte da aula'}`,
+      back: sentence,
     })),
   ].slice(0, 12);
 
