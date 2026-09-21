@@ -234,7 +234,7 @@ audio { width: 100%; margin-top: 8px; border-radius: var(--r-pill); }
 .study-card .face {
   position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
   padding: 30px; border-radius: var(--r-lg); display: grid; gap: 14px; align-content: center; text-align: center;
-  background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow-md);
+  background: color-mix(in oklab, var(--ink-700) 94%, transparent); border: 1px solid var(--hairline); box-shadow: var(--shadow-md);
 }
 .study-card .back { transform: rotateY(180deg); }
 .study-card .q { font-size: 1.22rem; font-weight: 580; letter-spacing: -0.02em; line-height: 1.38; }
@@ -290,3 +290,25 @@ audio { width: 100%; margin-top: 8px; border-radius: var(--r-pill); }
   backdrop-filter: blur(30px) saturate(180%); }
 .modal h3 { font-size: 1.15rem; font-weight: 620; letter-spacing: -0.022em; }
 .modal-actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; }
+
+
+/* ── Stepper da esteira ──────────────────────────────────── */
+.stepper { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stepper li { display: grid; gap: 6px; justify-items: start; font-size: .76rem; color: var(--text-3); }
+.stepper li i {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--hairline-strong);
+  transition: background var(--dur) var(--ease-apple), border-color var(--dur), box-shadow var(--dur);
+}
+.stepper li.done { color: var(--text-2); }
+.stepper li.done i { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 22%, transparent); }
+
+/* ── Deck de fichas (Stack) ──────────────────────────────── */
+.card-stage { position: relative; }
+.study-ghost {
+  position: absolute; inset: 0; border-radius: var(--r-lg);
+  background: color-mix(in oklab, var(--ink-700) 90%, transparent); border: 1px solid var(--hairline);
+  pointer-events: none;
+}
+.study-ghost.g1 { transform: translateY(12px) scale(.965); opacity: .7; }
+.study-ghost.g2 { transform: translateY(24px) scale(.93); opacity: .4; }

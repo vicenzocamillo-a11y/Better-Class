@@ -226,3 +226,17 @@
   .panel-body { padding: 14px; }
   .hero-cta .btn { width: 100%; }
 }
+
+/* ── Grade de pontos do herói (anime.js) ─────────────────── */
+.hero { position: relative; }
+.hero-dots { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
+  mask-image: radial-gradient(70% 70% at 45% 45%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(70% 70% at 45% 45%, #000 30%, transparent 100%); }
+
+/* ── Faixa de disciplinas ────────────────────────────────── */
+.disciplines { padding-block: 8px 0; }
+.disciplines .tag { font-size: .82rem; padding: 7px 14px; white-space: nowrap; }
+
+/* ── Linha entre os passos ───────────────────────────────── */
+.steps-line { width: 100%; height: 40px; margin-bottom: -22px; opacity: .9; }
+@media (max-width: 950px) { .steps-line { display: none; } }

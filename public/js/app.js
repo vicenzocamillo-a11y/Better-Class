@@ -3,7 +3,7 @@
  * Roteamento por hash, views renderizadas em JS e progresso ao vivo por SSE.
  */
 import { animate, set, stagger, timeline, reducedMotion } from './motion.js';
-import { aurora, enhance, countUp, audioBars, spotlight, ripple } from './effects.js';
+import { aurora, enhance, countUp, audioBars, spotlight, ripple, clickSpark } from './effects.js';
 import { api, listenEvents } from './api.js';
 import { LectureRecorder, formatDuration, speechSupported, pickMime } from './recorder.js';
 
@@ -235,6 +235,7 @@ function wireChrome() {
   });
 
   document.querySelectorAll('[data-ripple]').forEach(ripple);
+  document.querySelectorAll('.topbar .btn-primary').forEach((el) => clickSpark(el, { color: '#ffffff' }));
 }
 
 /** Progresso da automação chegando do servidor. */
@@ -249,13 +250,24 @@ function wireEvents() {
         const step = node.querySelector('[data-job-step]');
         if (bar) bar.style.width = `${data.progress}%`;
         if (step) step.textContent = data.step;
+        node.querySelectorAll('[data-stepper] li').forEach((li) => {
+          const reached = data.progress >= Number(li.dataset.at);
+          if (reached && !li.classList.contains('done')) {
+            li.classList.add('done');
+            animate(li.querySelector('i'), { scale: [0.4, 1.25, 1], duration: 560, easing: 'elastic.out' });
+          }
+        });
         node.dataset.status = data.status;
       });
 
       if (data.status === 'done') {
         toast('Material da aula pronto ✨', 'ok');
         refreshLectures().then(() => {
-          if (['inicio', 'aulas'].includes(currentRoute().name)) render();
+          const { name, params } = currentRoute();
+          // se a aula que terminou está aberta, o material aparece sem precisar recarregar
+          if (['inicio', 'aulas'].includes(name) || (name === 'aula' && params[0] === data.lectureId)) {
+            setTimeout(render, 900);   // deixa os passos acenderem antes de trocar a tela
+          }
         });
         refreshStats();
       }
@@ -351,7 +363,7 @@ function lectureCard(lecture) {
   const [color, label] = STATUS_TAG[lecture.status] || ['blue', lecture.status];
   const job = lecture.job && lecture.status === 'processing' ? lecture.job : null;
   const card = el(`
-    <article class="lecture-card" data-lecture="${lecture.id}" ${job ? `data-job-for="${lecture.id}"` : ''} data-spotlight>
+    <article class="lecture-card" data-lecture="${lecture.id}" ${job ? `data-job-for="${lecture.id}"` : ''} data-spotlight data-glare>
       <div class="lecture-meta">
         <span class="tag ${color}"><span class="tag-dot"></span>${label}</span>
         ${lecture.course ? `<span>${esc(lecture.course.name)}</span>` : ''}
@@ -453,6 +465,8 @@ route('gravar', async (node) => {
     course: shell.querySelector('#recCourse'),
     source: shell.querySelector('#recSource'),
   };
+
+  clickSpark(ui.toggle, { color: '#ff8a80', count: 14, distance: 48, length: 14 });
 
   ui.course.addEventListener('change', async () => {
     if (ui.course.value !== '__new') return;
@@ -706,6 +720,10 @@ route('aula', async (node, params) => {
     node.appendChild(el(`
       <div class="job-card" data-job-for="${lecture.id}">
         <div class="between"><strong>A IA está montando seu material</strong><span class="micro" data-job-step>${esc(lecture.job?.step || 'na fila')}</span></div>
+        <ol class="stepper" data-stepper>
+          ${[['Juntar áudio', 15], ['Transcrever', 50], ['IA estudando', 85], ['Material pronto', 100]].map(([name, at]) =>
+            `<li data-at="${at}" class="${(lecture.job?.progress || 0) >= at ? 'done' : ''}"><i></i><span>${name}</span></li>`).join('')}
+        </ol>
         <div class="job-bar"><i data-job-bar style="width:${lecture.job?.progress || 4}%"></i></div>
         <small class="micro">Pode sair desta tela — avisamos quando ficar pronto.</small>
       </div>`));
@@ -970,6 +988,8 @@ route('revisar', async (node) => {
         <span class="micro" data-from></span>
       </div>
       <div class="card-stage">
+        <div class="study-ghost g2" data-ghost="2"></div>
+        <div class="study-ghost g1" data-ghost="1"></div>
         <div class="study-card" data-card tabindex="0" role="button" aria-label="Mostrar resposta">
           <div class="face front"><span class="micro">pergunta</span><p class="q" data-front></p><span class="micro">clique ou espaço para virar</span></div>
           <div class="face back"><span class="micro">resposta</span><p class="a" data-back></p></div>
@@ -1002,7 +1022,10 @@ route('revisar', async (node) => {
     progress.style.width = `${(i / cards.length) * 100}%`;
     card.classList.remove('flipped');
     grades.hidden = true;
-    animate(card, { opacity: [0, 1], translateY: [22, 0], scale: [0.97, 1], duration: 620, easing: 'swift' });
+    const remaining = cards.length - i - 1;
+    stage.querySelectorAll('[data-ghost]').forEach((ghost) => { ghost.hidden = remaining < Number(ghost.dataset.ghost); });
+    // a ficha de trás vem para a frente
+    animate(card, { opacity: [0, 1], translateY: [14, 0], scale: [0.96, 1], duration: 560, easing: 'swift' });
   };
 
   const flip = () => {

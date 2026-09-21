@@ -182,8 +182,8 @@ class Animation {
 
   pause() { running.delete(this); return this; }
 
-  seek(progress) {
-    for (const track of this.tracks) this._applyTrack(track, progress);
+  seek(time) {
+    for (const track of this.tracks) this._applyTrack(track, time);
     return this;
   }
 
@@ -234,17 +234,38 @@ export function set(targets, values) {
   for (const el of toElements(targets)) applyValues(el, values);
 }
 
-/** Atraso escalonado, igual ao stagger do anime.js. */
-export function stagger(step = 60, { start = 0, from = 'first', easing } = {}) {
+/**
+ * Atraso escalonado, igual ao stagger do anime.js.
+ *   stagger(60)                                  → 0, 60, 120…
+ *   stagger(60, { from: 'center' })              → do meio para fora
+ *   stagger(40, { grid: [14, 6], from: 'center' }) → onda a partir do centro da grade
+ *   stagger(40, { grid: [14, 6], from: [3, 2] })   → onda a partir da célula (3,2)
+ */
+export function stagger(step = 60, { start = 0, from = 'first', easing, grid, axis } = {}) {
   const curve = easing ? resolveEasing(easing) : null;
   return (el, index, length) => {
     let distance;
-    if (from === 'center') distance = Math.abs(index - (length - 1) / 2);
+    if (grid) {
+      const [cols, rows] = grid;
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      let fx, fy;
+      if (from === 'center') { fx = (cols - 1) / 2; fy = (rows - 1) / 2; }
+      else if (from === 'last') { fx = cols - 1; fy = rows - 1; }
+      else if (Array.isArray(from)) { [fx, fy] = from; }
+      else if (typeof from === 'number') { fx = from % cols; fy = Math.floor(from / cols); }
+      else { fx = 0; fy = 0; }
+      distance = axis === 'x' ? Math.abs(col - fx)
+        : axis === 'y' ? Math.abs(row - fy)
+        : Math.hypot(col - fx, row - fy);
+    } else if (from === 'center') distance = Math.abs(index - (length - 1) / 2);
     else if (from === 'last') distance = length - 1 - index;
     else if (typeof from === 'number') distance = Math.abs(index - from);
     else distance = index;
-    const normalized = length > 1 ? distance / (length - 1) : 0;
-    const factor = curve ? curve(normalized) * (length - 1) : distance;
+
+    const maxDistance = grid ? Math.hypot(grid[0], grid[1]) : Math.max(1, length - 1);
+    const normalized = distance / maxDistance;
+    const factor = curve ? curve(normalized) * maxDistance : distance;
     return start + step * factor;
   };
 }

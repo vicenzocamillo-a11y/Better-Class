@@ -380,11 +380,240 @@ export function cursorGlow() {
 }
 
 /** Aplica os efeitos declarativos de uma vez só. */
+
+/* ══════════════════════════════════════════════════════════
+   Componentes no espírito do ReactBits e do anime.js
+   ══════════════════════════════════════════════════════════ */
+
+/**
+ * Grade de pontos que ondula a partir do ponteiro e de pulsos.
+ * É a assinatura visual do anime.js: stagger em grade a partir de um ponto.
+ */
+export function dotGrid(canvas, { gap = 26, color = '140,160,255', pulseOnLoad = true } = {}) {
+  const ctx = canvas.getContext('2d');
+  let width = 0, height = 0, raf = 0, cols = 0, rows = 0;
+  const pointer = { x: -9999, y: -9999 };
+  const pulses = [];
+
+  const resize = () => {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    width = canvas.offsetWidth; height = canvas.offsetHeight;
+    canvas.width = width * dpr; canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cols = Math.ceil(width / gap) + 1; rows = Math.ceil(height / gap) + 1;
+  };
+
+  const pulse = (x, y) => { pulses.push({ x, y, t: performance.now() }); if (pulses.length > 6) pulses.shift(); };
+
+  const draw = (now) => {
+    ctx.clearRect(0, 0, width, height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * gap, y = r * gap;
+        let boost = 0;
+        const dp = Math.hypot(x - pointer.x, y - pointer.y);
+        if (dp < 160) boost += (1 - dp / 160) * 0.9;
+        for (const p of pulses) {
+          const age = (now - p.t) / 1000;
+          if (age > 2.2) continue;
+          const ring = age * 520;
+          const d = Math.abs(Math.hypot(x - p.x, y - p.y) - ring);
+          if (d < 90) boost += (1 - d / 90) * (1 - age / 2.2) * 1.1;
+        }
+        boost = Math.min(1.2, boost);
+        const alpha = 0.16 + boost * 0.7;
+        const radius = 1 + boost * 2.2;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${color},${alpha})`;
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    for (let i = pulses.length - 1; i >= 0; i--) if (now - pulses[i].t > 2200) pulses.splice(i, 1);
+    raf = requestAnimationFrame(draw);
+  };
+
+  const move = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    pointer.x = event.clientX - rect.left; pointer.y = event.clientY - rect.top;
+  };
+  const click = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    pulse(event.clientX - rect.left, event.clientY - rect.top);
+  };
+
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('pointermove', move, { passive: true });
+  window.addEventListener('pointerdown', click, { passive: true });
+  if (reducedMotion()) { draw(performance.now()); cancelAnimationFrame(raf); }
+  else {
+    raf = requestAnimationFrame(draw);
+    if (pulseOnLoad) setTimeout(() => pulse(width * 0.32, height * 0.45), 500);
+  }
+  return { pulse, stop: () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); window.removeEventListener('pointermove', move); window.removeEventListener('pointerdown', click); } };
+}
+
+/** RotatingText: troca palavras com as letras girando na vertical. */
+export function rotatingText(el, words, { interval = 2600, step = 28 } = {}) {
+  if (!el || !words.length) return () => {};
+  el.classList.add('rotating-text');
+  el.setAttribute('aria-live', 'polite');
+  let index = 0, timer;
+
+  const render = (word) => {
+    el.textContent = '';
+    for (const char of word) {
+      const span = document.createElement('span');
+      span.className = 'rotating-char';
+      span.textContent = char === ' ' ? ' ' : char;
+      el.appendChild(span);
+    }
+    return [...el.children];
+  };
+
+  let chars = render(words[0]);
+  if (reducedMotion()) return () => {};
+
+  const cycle = async () => {
+    await animate(chars, {
+      translateY: [0, -34], opacity: [1, 0], rotateX: [0, 40],
+      duration: 380, delay: stagger(step), easing: 'appleIn',
+    }).finished;
+    index = (index + 1) % words.length;
+    chars = render(words[index]);
+    set(chars, { translateY: 34, opacity: 0, rotateX: -40 });
+    animate(chars, { translateY: 0, opacity: 1, rotateX: 0, duration: 620, delay: stagger(step), easing: 'swift' });
+    timer = setTimeout(cycle, interval);
+  };
+  timer = setTimeout(cycle, interval);
+  return () => clearTimeout(timer);
+}
+
+/** ClickSpark: faíscas saindo do ponto do clique. Um canvas fixo para a página toda. */
+let sparkCanvas = null;
+let sparks = [];
+let sparkRaf = 0;
+function ensureSparkCanvas() {
+  if (sparkCanvas) return sparkCanvas;
+  sparkCanvas = document.createElement('canvas');
+  sparkCanvas.className = 'spark-layer';
+  document.body.appendChild(sparkCanvas);
+  const resize = () => {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    sparkCanvas.width = innerWidth * dpr; sparkCanvas.height = innerHeight * dpr;
+    sparkCanvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resize();
+  window.addEventListener('resize', resize);
+  return sparkCanvas;
+}
+function drawSparks() {
+  const ctx = sparkCanvas.getContext('2d');
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  const now = performance.now();
+  sparks = sparks.filter((s) => now - s.t0 < s.life);
+  for (const s of sparks) {
+    const p = (now - s.t0) / s.life;
+    const eased = 1 - (1 - p) ** 3;
+    const start = s.radius * 0.35 + s.distance * eased;
+    const end = start + s.length * (1 - p);
+    ctx.strokeStyle = s.color;
+    ctx.globalAlpha = 1 - p;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(s.x + Math.cos(s.angle) * start, s.y + Math.sin(s.angle) * start);
+    ctx.lineTo(s.x + Math.cos(s.angle) * end, s.y + Math.sin(s.angle) * end);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  sparkRaf = sparks.length ? requestAnimationFrame(drawSparks) : 0;
+}
+export function clickSpark(el, { color = '#8fb2ff', count = 10, distance = 34, length = 12, life = 520 } = {}) {
+  el.addEventListener('pointerdown', (event) => {
+    if (reducedMotion()) return;
+    ensureSparkCanvas();
+    const t0 = performance.now();
+    for (let i = 0; i < count; i++) {
+      sparks.push({ x: event.clientX, y: event.clientY, angle: (Math.PI * 2 * i) / count + Math.random() * 0.2,
+        distance, length, life, color, t0, radius: 12 });
+    }
+    if (!sparkRaf) sparkRaf = requestAnimationFrame(drawSparks);
+  });
+}
+
+/** Faixa que corre sem fim (InfiniteScroll / LogoLoop), pausa ao passar o mouse. */
+export function marquee(el, { speed = 40 } = {}) {
+  const track = el.querySelector('[data-track]') || el.firstElementChild;
+  if (!track) return;
+  const clone = track.cloneNode(true);
+  clone.setAttribute('aria-hidden', 'true');
+  el.appendChild(clone);
+  const width = track.scrollWidth;
+  const duration = Math.max(8, width / speed);
+  el.style.setProperty('--marquee-duration', `${duration}s`);
+  el.classList.add('is-ready');
+}
+
+/** Desenha um caminho SVG (stroke-dashoffset), o clássico do anime.js. */
+export function drawPath(path, { duration = 1400, delay = 0, easing = 'expo.inOut' } = {}) {
+  if (!path) return { finished: Promise.resolve() };
+  const length = path.getTotalLength();
+  path.style.strokeDasharray = `${length}`;
+  path.style.strokeDashoffset = `${length}`;
+  if (reducedMotion()) { path.style.strokeDashoffset = '0'; return { finished: Promise.resolve() }; }
+  const state = { offset: length };
+  return animate(state, {
+    offset: [length, 0], duration, delay, easing,
+    onUpdate: () => { path.style.strokeDashoffset = `${state.offset}`; },
+  });
+}
+
+/** DecryptedText: caracteres aleatórios que se assentam da esquerda para a direita. */
+export function scramble(el, { duration = 1100, delay = 0, chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&' } = {}) {
+  if (!el) return;
+  const target = el.dataset.scramble || el.textContent;
+  el.dataset.scramble = target;
+  if (reducedMotion()) { el.textContent = target; return; }
+  const start = performance.now() + delay;
+  const tick = (now) => {
+    const p = Math.min(1, Math.max(0, (now - start) / duration));
+    const settled = Math.floor(p * target.length);
+    let out = '';
+    for (let i = 0; i < target.length; i++) {
+      const ch = target[i];
+      if (i < settled || ch === ' ') out += ch;
+      else out += chars[Math.floor(Math.random() * chars.length)];
+    }
+    el.textContent = out;
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/** Barra fina no topo mostrando o progresso da rolagem. */
+export function scrollProgressBar() {
+  const bar = document.createElement('div');
+  bar.className = 'scroll-progress';
+  document.body.appendChild(bar);
+  const update = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    bar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
 export function enhance(root = document) {
   root.querySelectorAll('[data-magnetic]').forEach((el) => magnetic(el, { strength: Number(el.dataset.magnetic) || 0.3 }));
   root.querySelectorAll('[data-spotlight]').forEach((el) => spotlight(el));
   root.querySelectorAll('[data-tilt]').forEach((el) => tilt(el, { max: Number(el.dataset.tilt) || 9 }));
   root.querySelectorAll('[data-ripple]').forEach((el) => ripple(el));
+  root.querySelectorAll('[data-spark]').forEach((el) => clickSpark(el, { color: el.dataset.spark || '#8fb2ff' }));
+  root.querySelectorAll('[data-glare]').forEach((el) => el.classList.add('has-glare'));
+  root.querySelectorAll('[data-marquee]').forEach((el) => marquee(el, { speed: Number(el.dataset.marquee) || 40 }));
+  root.querySelectorAll('[data-scramble]').forEach((el, i) => inView(el, () => scramble(el, { delay: i * 80 })));
   scrollReveal(root);
   parallax(root);
 }

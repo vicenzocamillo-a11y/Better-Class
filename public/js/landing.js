@@ -1,10 +1,17 @@
 import { animate, set, stagger, timeline, inView, onScrollProgress, reducedMotion } from './motion.js';
-import { enhance, revealText, countUp, aurora, particles, typewriter, cursorGlow } from './effects.js';
+import {
+  enhance, revealText, countUp, aurora, particles, typewriter, cursorGlow,
+  dotGrid, rotatingText, drawPath, scrollProgressBar,
+} from './effects.js';
 
 /* ── Cenário ──────────────────────────────────────────────── */
 aurora(document.getElementById('aurora'));
 particles(document.getElementById('dust'), { count: 64 });
 cursorGlow();
+scrollProgressBar();
+
+/* Grade de pontos do herói: ondula a partir do ponteiro e de cada clique */
+const dots = dotGrid(document.getElementById('heroDots'), { gap: 28, color: '150,170,255' });
 
 /* ── Navegação ────────────────────────────────────────────── */
 const nav = document.getElementById('nav');
@@ -49,6 +56,12 @@ requestAnimationFrame(() => {
       animate(t2, { translateY: [26, 0], blur: [10, 0], duration: 1400, delay: 520, easing: 'swift' });
     }
   }
+
+  /* RotatingText: o que a IA entrega, uma palavra de cada vez */
+  setTimeout(() => {
+    rotatingText(document.getElementById('rotator'),
+      ['automático', 'resumido', 'anotado', 'revisado', 'automático'], { interval: 2400 });
+  }, 2600);
 
   timeline({ easing: 'swift', duration: 950 })
     .add('.hero-copy .eyebrow', { opacity: 1, translateY: 0, blur: 0, duration: 700 }, 0)
@@ -121,6 +134,12 @@ inView('.panel-out', () => {
     duration: 1000, delay: stagger(160, { start: 400 }), easing: 'swift',
   });
 }, { amount: 0.3 });
+
+/* ── Linha que liga os três passos (stroke-dashoffset) ────── */
+inView('.steps-line', () => {
+  drawPath(document.getElementById('stepsPath'), { duration: 1600, delay: 200 });
+  dots?.pulse?.(0, 0);
+}, { amount: 0.5 });
 
 /* ── Contadores ───────────────────────────────────────────── */
 inView('.stats', () => {
