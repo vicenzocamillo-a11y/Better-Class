@@ -1,40 +1,41 @@
 <!doctype html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Better Class</title>
 <meta name="description" content="Grave a aula, receba resumo, apontamentos e revisão.">
-<meta name="theme-color" content="#05060a">
+<meta name="theme-color" content="#f4f3ee">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/app.css">
 </head>
 <body class="app-page">
 
-<div class="backdrop app-backdrop"><canvas id="aurora"></canvas></div>
-
 <div class="app" id="app" hidden>
   <aside class="sidebar">
     <a class="brand" href="/">
-      <img src="/assets/logo.svg" alt="" width="28" height="28">
+      <img src="/assets/logo.svg" alt="" width="26" height="26">
       <span>Better&nbsp;Class</span>
     </a>
 
     <nav class="side-nav" aria-label="Seções do app">
-      <a href="#/inicio"  data-nav="inicio"><i>◈</i><span>Início</span></a>
-      <a href="#/gravar"  data-nav="gravar"><i>◉</i><span>Gravar aula</span></a>
-      <a href="#/aulas"   data-nav="aulas"><i>▤</i><span>Minhas aulas</span></a>
-      <a href="#/revisar" data-nav="revisar"><i>↺</i><span>Revisar</span><em class="badge" id="dueBadge" hidden>0</em></a>
-      <a href="#/quiz"    data-nav="quiz"><i>?</i><span>Quiz</span></a>
-      <a href="#/ajustes" data-nav="ajustes"><i>⚙</i><span>Ajustes</span></a>
+      <a href="#/inicio"  data-nav="inicio"><i>01</i><span>Início</span></a>
+      <a href="#/gravar"  data-nav="gravar"><i>02</i><span>Gravar aula</span></a>
+      <a href="#/aulas"   data-nav="aulas"><i>03</i><span>Minhas aulas</span></a>
+      <a href="#/revisar" data-nav="revisar"><i>04</i><span>Revisar</span><em class="badge" id="dueBadge" hidden>0</em></a>
+      <a href="#/quiz"    data-nav="quiz"><i>05</i><span>Quiz</span></a>
+      <a href="#/ajustes" data-nav="ajustes"><i>06</i><span>Ajustes</span></a>
     </nav>
 
     <div class="side-foot">
-      <div class="rec-mini glass-soft" id="recMini" hidden>
+      <div class="rec-mini surface" id="recMini" hidden>
         <span class="rec-mini-dot"></span>
         <div>
-          <strong class="mono" id="recMiniTime">00:00:00</strong>
+          <strong id="recMiniTime">00:00:00</strong>
           <small class="micro">gravando em segundo plano</small>
         </div>
         <a class="btn btn-sm btn-ghost" href="#/gravar">abrir</a>
@@ -42,27 +43,29 @@
       <div class="user-chip" id="userChip">
         <span class="avatar" id="avatar">A</span>
         <div class="user-meta">
-          <strong id="userName">—</strong>
+          <strong id="userName">…</strong>
           <small class="micro" id="engineBadge">motor local</small>
         </div>
-        <button class="btn btn-icon btn-quiet" id="logout" title="Sair" aria-label="Sair">⏻</button>
+        <button class="btn btn-sm btn-quiet" id="logout" title="Sair da conta">Sair</button>
       </div>
     </div>
   </aside>
 
   <div class="main">
     <header class="topbar">
-      <button class="btn btn-icon btn-ghost only-mobile" id="menuBtn" aria-label="Menu">☰</button>
+      <button class="btn btn-icon btn-ghost only-mobile" id="menuBtn" aria-label="Menu">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 5h14M2 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
       <div class="topbar-title">
         <h1 class="h3" id="viewTitle">Início</h1>
-        <p class="micro" id="viewSub">—</p>
+        <p class="micro" id="viewSub">…</p>
       </div>
       <div class="topbar-actions">
-        <label class="search glass-soft">
+        <label class="search surface">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="4.6" stroke="currentColor" stroke-width="1.5"/><path d="M10.3 10.3 13.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <input id="search" type="search" placeholder="Buscar nas aulas…" aria-label="Buscar nas aulas">
         </label>
-        <a class="btn btn-primary btn-sm rec-cta" href="#/gravar" data-ripple>
+        <a class="btn btn-primary btn-sm rec-cta" href="#/gravar">
           <span class="rec-cta-dot"></span> Gravar
         </a>
       </div>
@@ -73,7 +76,7 @@
 </div>
 
 <div class="boot" id="boot">
-  <div class="boot-logo"><img src="/assets/logo.svg" alt="Better Class" width="46" height="46"></div>
+  <div class="boot-logo"><img src="/assets/logo.svg" alt="Better Class" width="40" height="40"></div>
   <p class="micro" id="bootMsg">preparando seu material…</p>
 </div>
 

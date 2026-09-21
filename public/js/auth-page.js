@@ -1,22 +1,14 @@
-import { animate, set, stagger, timeline } from './motion.js';
-import { aurora, spotlight, ripple, revealText } from './effects.js';
+import { animate, set, stagger, reducedMotion } from './motion.js';
 import { api } from './api.js';
 
-aurora(document.getElementById('aurora'), { blobs: 3 });
-document.querySelectorAll('[data-spotlight]').forEach(spotlight);
-document.querySelectorAll('[data-ripple]').forEach(ripple);
-
-/* Entrada da página */
-set('.auth-card, .auth-list li, .auth-pitch .lead, .back-home', { opacity: 0, translateY: 24, blur: 6 });
-requestAnimationFrame(() => {
-  revealText(document.getElementById('pitchTitle'), { by: 'words', step: 36, delay: 80 });
-  timeline({ easing: 'swift', duration: 900 })
-    .add('.auth-pitch .lead', { opacity: 1, translateY: 0, blur: 0 }, 260)
-    .add('.auth-list li', { opacity: 1, translateY: 0, blur: 0, delay: stagger(80) }, 380)
-    .add('.auth-card', { opacity: 1, translateY: 0, blur: 0, duration: 1100 }, 180)
-    .add('.back-home', { opacity: 1, translateY: 0, blur: 0 }, 700)
-    .play();
-});
+/* Entrada da página: uma passagem só, de cima para baixo */
+const entering = '.auth-pitch .h1, .auth-pitch .lead, .auth-list li, .auth-card, .back-home';
+if (!reducedMotion()) {
+  set(entering, { opacity: 0, translateY: 14 });
+  requestAnimationFrame(() => {
+    animate(entering, { opacity: 1, translateY: 0, duration: 800, delay: stagger(70, { start: 60 }), easing: 'swift' });
+  });
+}
 
 /* Alternar entre entrar e criar conta */
 const googleBtn = document.getElementById('googleBtn');

@@ -7,8 +7,10 @@ automática junta o áudio, transcreve, chama a IA e devolve **resumo**, **apont
 **glossário**, **flashcards com repetição espaçada**, **quiz** e um **plano de revisão** até
 o dia da prova.
 
-Interface com estética Apple — vidro, tipografia SF, animações cinematográficas
-(motor próprio inspirado no anime.js e nos componentes do ReactBits).
+Interface de papel e tinta: fundo claro, tipografia Schibsted Grotesk, rótulos em
+monoespaçada, marca-texto amarelo para o que importa e vermelho só para gravação ao vivo.
+O movimento explica estado (título entrando por máscara, palco fixo que muda com a
+rolagem, esteira acendendo), com motor próprio no estilo de GSAP, anime.js e Motion.
 
 ---
 

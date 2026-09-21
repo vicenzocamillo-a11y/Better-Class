@@ -3,7 +3,7 @@
  * Roteamento por hash, views renderizadas em JS e progresso ao vivo por SSE.
  */
 import { animate, set, stagger, timeline, reducedMotion } from './motion.js';
-import { aurora, enhance, countUp, audioBars, spotlight, ripple, clickSpark } from './effects.js';
+import { enhance, countUp, audioBars } from './effects.js';
 import { api, listenEvents } from './api.js';
 import { LectureRecorder, formatDuration, speechSupported, pickMime } from './recorder.js';
 
@@ -177,7 +177,6 @@ async function boot() {
   }
 
   applySettings();
-  aurora(document.getElementById('aurora'), { blobs: 3, speed: 0.00008 });
 
   document.getElementById('userName').textContent = state.user.name;
   document.getElementById('avatar').textContent = state.user.name.charAt(0).toUpperCase();
@@ -203,8 +202,6 @@ async function boot() {
 }
 
 function applySettings() {
-  const theme = state.settings.theme || 'dark';
-  document.documentElement.dataset.theme = theme;
   document.documentElement.dataset.motion = state.settings.reduceMotion ? 'reduced' : 'full';
 }
 
@@ -234,8 +231,6 @@ function wireChrome() {
     }, 300);
   });
 
-  document.querySelectorAll('[data-ripple]').forEach(ripple);
-  document.querySelectorAll('.topbar .btn-primary').forEach((el) => clickSpark(el, { color: '#ffffff' }));
 }
 
 /** Progresso da automação chegando do servidor. */
@@ -261,7 +256,7 @@ function wireEvents() {
       });
 
       if (data.status === 'done') {
-        toast('Material da aula pronto ✨', 'ok');
+        toast('Material da aula pronto', 'ok');
         refreshLectures().then(() => {
           const { name, params } = currentRoute();
           // se a aula que terminou está aberta, o material aparece sem precisar recarregar
@@ -310,15 +305,15 @@ route('inicio', async (node) => {
       <div class="section-title"><h2>Próximo passo</h2></div>
       <div class="cards">
         <a class="lecture-card" href="#/gravar">
-          <h3>◉ Gravar a aula de agora</h3>
+          <h3>Gravar a aula de agora</h3>
           <p class="small muted">Deixa rodando em segundo plano. O material chega sozinho no fim.</p>
         </a>
         <a class="lecture-card" href="#/revisar">
-          <h3>↺ Revisar ${stats.due} card${stats.due === 1 ? '' : 's'}</h3>
-          <p class="small muted">${stats.due ? 'Vencem hoje — 5 minutos resolvem.' : 'Nada vencendo agora. Volte amanhã.'}</p>
+          <h3>Revisar ${stats.due} card${stats.due === 1 ? '' : 's'}</h3>
+          <p class="small muted">${stats.due ? 'Vencem hoje. Cinco minutos resolvem.' : 'Nada vencendo agora. Volte amanhã.'}</p>
         </a>
         <button class="lecture-card" data-import style="text-align:left">
-          <h3>⇪ Importar uma aula em texto</h3>
+          <h3>Importar uma aula em texto</h3>
           <p class="small muted">Já tem a transcrição ou as anotações? A IA monta o resto.</p>
         </button>
       </div>
@@ -337,7 +332,7 @@ route('inicio', async (node) => {
     </section>`);
   const container = list.querySelector('[data-recent]');
   if (!recent.length) {
-    container.appendChild(el(`<div class="empty"><div class="ring">◉</div><p>Nenhuma aula ainda. A primeira gravação leva 10 segundos para começar.</p><a class="btn btn-primary" href="#/gravar">Gravar agora</a></div>`));
+    container.appendChild(el(`<div class="empty"><div class="ring">·</div><p>Nenhuma aula ainda. A primeira gravação leva 10 segundos para começar.</p><a class="btn btn-primary" href="#/gravar">Gravar agora</a></div>`));
   } else {
     recent.forEach((lecture) => container.appendChild(lectureCard(lecture)));
   }
@@ -363,7 +358,7 @@ function lectureCard(lecture) {
   const [color, label] = STATUS_TAG[lecture.status] || ['blue', lecture.status];
   const job = lecture.job && lecture.status === 'processing' ? lecture.job : null;
   const card = el(`
-    <article class="lecture-card" data-lecture="${lecture.id}" ${job ? `data-job-for="${lecture.id}"` : ''} data-spotlight data-glare>
+    <article class="lecture-card" data-lecture="${lecture.id}" ${job ? `data-job-for="${lecture.id}"` : ''}>
       <div class="lecture-meta">
         <span class="tag ${color}"><span class="tag-dot"></span>${label}</span>
         ${lecture.course ? `<span>${esc(lecture.course.name)}</span>` : ''}
@@ -428,7 +423,7 @@ route('gravar', async (node) => {
           <div class="stack gap-2" style="justify-content:center">
             <button class="btn btn-ghost" data-pause hidden>Pausar</button>
             <button class="btn btn-ghost" data-stop hidden>Encerrar e processar</button>
-            <small class="micro" data-hint>${canRecord ? 'A gravação sobe em pedaços de 15s — se algo fechar, nada se perde.' : 'Este navegador não suporta gravação. Use Chrome, Edge ou Safari.'}</small>
+            <small class="micro" data-hint>${canRecord ? 'A gravação sobe em pedaços de 15 s. Se algo fechar, nada se perde.' : 'Este navegador não suporta gravação. Use Chrome, Edge ou Safari.'}</small>
           </div>
         </div>
       </section>
@@ -466,7 +461,6 @@ route('gravar', async (node) => {
     source: shell.querySelector('#recSource'),
   };
 
-  clickSpark(ui.toggle, { color: '#ff8a80', count: 14, distance: 48, length: 14 });
 
   ui.course.addEventListener('change', async () => {
     if (ui.course.value !== '__new') return;
@@ -488,7 +482,7 @@ route('gravar', async (node) => {
     const time = Date.now() / 600;
     for (let i = 0; i < idle.length; i++) idle[i] = 8 + Math.abs(Math.sin(time + i / 5)) * 14;
     return idle;
-  }, { bars: 56 });
+  }, { bars: 56, color: '#141413' });
 
   let totalBytes = 0;
   const attach = (recorder) => {
@@ -511,7 +505,7 @@ route('gravar', async (node) => {
       animate(line, { opacity: [0, 1], translateX: [-10, 0], duration: 400, easing: 'swift' });
     });
     recorder.addEventListener('retrying', (event) => {
-      toast(`Sem conexão — tentando enviar de novo em ${event.detail.wait / 1000}s`, 'warn', 2600);
+      toast(`Sem conexão. Tentando enviar de novo em ${event.detail.wait / 1000} s`, 'warn', 2600);
     });
     recorder.addEventListener('chunk-failed', () => {
       toast('Um pedaço do áudio não subiu. Vamos tentar de novo ao encerrar.', 'warn', 6000);
@@ -529,7 +523,7 @@ route('gravar', async (node) => {
     ui.pause.textContent = paused ? 'Retomar' : 'Pausar';
     ui.pill.className = `pill ${recording && !paused ? 'live' : ''}`;
     ui.pill.innerHTML = recording
-      ? `<i></i>${paused ? 'pausada' : 'gravando — pode minimizar'}`
+      ? `<i></i>${paused ? 'pausada' : 'gravando, pode minimizar'}`
       : '<i></i>pronto para gravar';
     [ui.title, ui.course, ui.source].forEach((input) => { input.disabled = recording; });
   };
@@ -557,7 +551,7 @@ route('gravar', async (node) => {
         source: ui.source.value,
       });
       setRecordingUI(true);
-      ui.hint.textContent = 'Gravando. Pode fechar esta tela — mas não a aba.';
+      ui.hint.textContent = 'Gravando. Pode fechar esta tela, mas não a aba.';
       animate(ui.toggle, { scale: [1, 1.12, 1], duration: 680, easing: 'elastic.out' });
       toast('Gravação iniciada. Bom estudo!', 'ok');
       await refreshLectures();
@@ -627,13 +621,12 @@ route('aulas', async (node) => {
     grid.innerHTML = '';
     const list = courseId ? state.lectures.filter((item) => item.course?.id === courseId) : state.lectures;
     if (!list.length) {
-      grid.appendChild(el('<div class="empty"><div class="ring">▤</div><p>Nada por aqui ainda.</p><a class="btn btn-primary" href="#/gravar">Gravar uma aula</a></div>'));
+      grid.appendChild(el('<div class="empty"><div class="ring">·</div><p>Nada por aqui ainda.</p><a class="btn btn-primary" href="#/gravar">Gravar uma aula</a></div>'));
       return;
     }
     list.forEach((lecture) => grid.appendChild(lectureCard(lecture)));
     set([...grid.children], { opacity: 0, translateY: 18 });
     animate([...grid.children], { opacity: 1, translateY: 0, duration: 700, delay: stagger(45), easing: 'swift' });
-    grid.querySelectorAll('[data-spotlight]').forEach(spotlight);
   };
   draw('');
 
@@ -653,7 +646,7 @@ async function importDialog() {
       <div class="modal">
         <h3>Importar aula em texto</h3>
         <p class="muted small">Cole a transcrição, o PDF da aula em texto ou suas anotações. A IA monta resumo, apontamentos, flashcards e quiz.</p>
-        <div class="field"><label for="impTitle">Título</label><input class="input" id="impTitle" placeholder="ex.: Termodinâmica — 2ª lei"></div>
+        <div class="field"><label for="impTitle">Título</label><input class="input" id="impTitle" placeholder="ex.: Termodinâmica, 2ª lei"></div>
         <div class="field"><label for="impText">Conteúdo</label><textarea class="textarea" id="impText" rows="9" placeholder="Cole aqui…"></textarea></div>
         <div class="modal-actions">
           <button class="btn btn-ghost" data-no>Cancelar</button>
@@ -725,7 +718,7 @@ route('aula', async (node, params) => {
             `<li data-at="${at}" class="${(lecture.job?.progress || 0) >= at ? 'done' : ''}"><i></i><span>${name}</span></li>`).join('')}
         </ol>
         <div class="job-bar"><i data-job-bar style="width:${lecture.job?.progress || 4}%"></i></div>
-        <small class="micro">Pode sair desta tela — avisamos quando ficar pronto.</small>
+        <small class="micro">Pode sair desta tela. Avisamos quando ficar pronto.</small>
       </div>`));
   }
   if (lecture.status === 'needs_transcript') {
@@ -875,7 +868,7 @@ function tabContent(key, data) {
   }
 
   if (key === 'transcricao') {
-    if (!transcript?.trim()) return empty('Sem transcrição — grave com a transcrição ao vivo ligada ou cole o texto da aula.');
+    if (!transcript?.trim()) return empty('Sem transcrição. Grave com a transcrição ao vivo ligada ou cole o texto da aula.');
     return el(`<div class="transcript-full">${esc(transcript)}</div>`);
   }
 
@@ -973,7 +966,7 @@ route('revisar', async (node) => {
   if (!cards.length) {
     node.appendChild(el(`
       <div class="empty">
-        <div class="ring">↺</div>
+        <div class="ring">·</div>
         <p>Nada para revisar agora. A repetição espaçada traz os cards de volta no momento certo.</p>
         <a class="btn btn-ghost" href="#/aulas">Ver minhas aulas</a>
       </div>`));
@@ -1125,7 +1118,7 @@ route('ajustes', async (node) => {
       </div>
       <div class="setting-row">
         <div class="txt"><strong>Transcrição ao vivo no navegador</strong>
-          <small>${speechSupported() ? 'Transcreve enquanto o professor fala, sem custo de API.' : 'Seu navegador não tem essa API — use Chrome ou Edge.'}</small></div>
+          <small>${speechSupported() ? 'Transcreve enquanto o professor fala, sem custo de API.' : 'Seu navegador não tem essa API. Use Chrome ou Edge.'}</small></div>
         <label class="switch"><input type="checkbox" data-set="liveTranscript" ${settings.liveTranscript !== false ? 'checked' : ''} ${speechSupported() ? '' : 'disabled'}><span class="track"></span></label>
       </div>
       <div class="setting-row">
@@ -1136,13 +1129,6 @@ route('ajustes', async (node) => {
         </select>
       </div>
       <div class="setting-row">
-        <div class="txt"><strong>Tema</strong><small>Escuro combina com sala de aula à noite.</small></div>
-        <select class="select" data-set="theme">
-          <option value="dark" ${settings.theme !== 'light' ? 'selected' : ''}>Escuro</option>
-          <option value="light" ${settings.theme === 'light' ? 'selected' : ''}>Claro</option>
-        </select>
-      </div>
-      <div class="setting-row">
         <div class="txt"><strong>Reduzir animações</strong><small>Desliga os movimentos mais longos da interface.</small></div>
         <label class="switch"><input type="checkbox" data-set="reduceMotion" ${settings.reduceMotion ? 'checked' : ''}><span class="track"></span></label>
       </div>
@@ -1150,14 +1136,14 @@ route('ajustes', async (node) => {
       <div class="setting-row">
         <div class="txt"><strong>Motor de IA</strong>
           <small>${state.capabilities.ai
-            ? 'Claude conectado — resumos e questões gerados pela IA.'
+            ? 'Claude conectado. Resumos e questões gerados pela IA.'
             : 'Sem ANTHROPIC_API_KEY: usando o motor local extrativo. Configure a chave no .env do servidor para ligar o Claude.'}</small></div>
         <span class="tag ${state.capabilities.ai ? 'green' : 'amber'}"><span class="tag-dot"></span>${state.capabilities.ai ? 'Claude' : 'local'}</span>
       </div>
       <div class="setting-row">
         <div class="txt"><strong>Transcrição no servidor</strong>
           <small>${state.capabilities.serverTranscription
-            ? 'Whisper configurado — o áudio é reprocessado no servidor quando a transcrição do navegador falha.'
+            ? 'Whisper configurado. O áudio é reprocessado no servidor quando a transcrição do navegador falha.'
             : 'Desligada. Defina TRANSCRIBE_URL e TRANSCRIBE_KEY no .env para ativar.'}</small></div>
         <span class="tag ${state.capabilities.serverTranscription ? 'green' : ''}"><span class="tag-dot"></span>${state.capabilities.serverTranscription ? 'ligada' : 'desligada'}</span>
       </div>
