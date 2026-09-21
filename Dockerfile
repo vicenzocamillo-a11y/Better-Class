@@ -1,26 +1,24 @@
-# Better Class — imagem única: a mesma aplicação serve a API e o front-end.
+# Better Class — imagem única: o mesmo processo serve a API e o front-end.
 FROM node:22-alpine
 
-# Rodar como root evita dor de cabeça com a permissão do volume montado em /data,
-# que a maioria das plataformas cria pertencendo ao root.
 WORKDIR /app
 
-# Não há dependências para instalar (o projeto usa só módulos nativos do Node),
-# mas copiar o package.json primeiro mantém a camada em cache.
+# Não há dependências para instalar: o projeto usa apenas módulos nativos do Node.
+# Copiar o package.json primeiro mantém a camada em cache entre deploys.
 COPY package.json ./
 COPY server ./server
 COPY public ./public
 
 ENV NODE_ENV=production \
-    PORT=3000 \
     HOST=0.0.0.0 \
     DATA_DIR=/data
 
-# Banco SQLite e áudios das aulas vivem aqui — monte um volume persistente.
-VOLUME ["/data"]
+# Banco SQLite e áudios das aulas. Monte aqui o volume persistente da plataforma.
+RUN mkdir -p /data
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:${PORT}/api/health || exit 1
+# Usa o próprio Node em vez de curl/wget: sempre presente, sem instalar nada.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "--no-warnings", "server/index.js"]

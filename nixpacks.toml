@@ -1,0 +1,15 @@
+# Rede de segurança: se a plataforma ignorar o Dockerfile e cair no Nixpacks,
+# estas instruções garantem o Node 22 (obrigatório por causa do node:sqlite).
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["echo 'Better Class nao tem dependencias para instalar'"]
+
+[phases.build]
+cmds = ["node --version"]
+
+[start]
+cmd = "node --no-warnings server/index.js"
