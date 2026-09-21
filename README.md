@@ -82,6 +82,16 @@ Cada flashcard guarda facilidade, intervalo, repetições e recaídas. As notas 
 **Errei / Difícil / Bom / Fácil** (teclas 1–4) e um SM-2 enxuto agenda a próxima aparição —
 de 10 minutos a 180 dias.
 
+## Deploy
+
+Back-end e front-end são o mesmo serviço: o servidor Node responde a `/api/*` e serve
+`public/`. O repositório já traz `Dockerfile`, `railway.json`, `fly.toml` e `render.yaml`.
+O passo a passo (Railway, Fly.io, Render e VPS com Caddy) está em **[DEPLOY.md](DEPLOY.md)**.
+
+Requisitos do host: processo sempre ligado, disco persistente para `data/`, HTTPS
+(sem ele o navegador bloqueia o microfone) e uma única instância — a fila e o SSE vivem
+no processo. Plataformas serverless (Vercel, Netlify, Workers) não servem.
+
 ---
 
 ## Estrutura

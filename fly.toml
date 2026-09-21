@@ -1,0 +1,36 @@
+# Better Class — uma máquina, um volume. Ajuste o nome do app antes do primeiro deploy.
+app = "better-class"
+primary_region = "gru"          # São Paulo
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  DATA_DIR = "/data"
+
+# Banco e áudios. Crie com: fly volumes create better_class_data --size 10 --region gru
+[[mounts]]
+  source = "better_class_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = "off"    # a fila de processamento e o SSE precisam do processo vivo
+  min_machines_running = 1
+
+[checks.saude]
+  type = "http"
+  port = 3000
+  path = "/api/health"
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

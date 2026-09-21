@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: better-class
+    runtime: docker
+    plan: starter                 # o disco persistente exige plano pago
+    healthCheckPath: /api/health
+    numInstances: 1               # a fila e o SSE vivem no processo: uma instância só
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /data
+      - key: SESSION_SECRET
+        generateValue: true       # gerado uma vez e preservado entre deploys
+      - key: ANTHROPIC_API_KEY
+        sync: false               # preencha no painel
+    disk:
+      name: better-class-data
+      mountPath: /data
+      sizeGB: 10
