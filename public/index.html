@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Better Class — a aula vira material de estudo sozinha</title>
+<meta name="description" content="Deixe o computador gravando a aula em segundo plano. Quando terminar, a IA entrega resumo, apontamentos, flashcards e um plano de revisão prontos para a prova.">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Better Class">
+<meta property="og:description" content="Grave a aula em segundo plano. A IA devolve resumo, apontamentos e revisão.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/landing.css">
+</head>
+<body class="landing">
+
+<div class="backdrop"><canvas id="aurora"></canvas><canvas id="dust"></canvas></div>
+
+<header class="nav" id="nav">
+  <div class="nav-inner wrap">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="30" height="30">
+      <span>Better&nbsp;Class</span>
+    </a>
+    <nav class="nav-links" aria-label="Seções">
+      <a href="#como">Como funciona</a>
+      <a href="#recursos">Recursos</a>
+      <a href="#automacao">Automação</a>
+      <a href="#revisao">Revisão</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-quiet" href="/entrar">Entrar</a>
+      <a class="btn btn-primary btn-sm" href="/criar-conta" data-magnetic="0.25" data-ripple>Começar grátis</a>
+    </div>
+    <button class="btn btn-icon btn-ghost nav-burger" id="burger" aria-label="Abrir menu" aria-expanded="false">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 5h14M2 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ── Herói ─────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow" data-reveal="fade">Gravação em segundo plano + IA</span>
+        <h1 class="display hero-title">
+          <span class="line" id="t1">Assista à aula.</span>
+          <span class="line gradient-text" id="t2">O resto é automático.</span>
+        </h1>
+        <p class="lead hero-lead">
+          Deixe o computador gravando enquanto o professor fala — minimizado, em outra aba, não importa.
+          Quando a aula acabar, o Better Class devolve <strong>resumo</strong>, <strong>apontamentos</strong>,
+          <strong>flashcards</strong> e um <strong>plano de revisão</strong> prontos para a prova.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="/criar-conta" data-magnetic="0.3" data-ripple>
+            Gravar minha primeira aula
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h9m0 0L8.5 4.5M12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#como" data-ripple>Ver como funciona</a>
+        </div>
+        <p class="hero-note micro">Sem instalar nada · Funciona com o microfone ou com o áudio da aula online · Seus arquivos ficam no seu servidor</p>
+      </div>
+
+      <!-- Painel flutuante: gravação → material pronto -->
+      <div class="hero-panel" data-parallax="0.12">
+        <div class="panel glass" data-tilt="7" data-spotlight>
+          <div data-tilt-inner>
+            <div class="panel-bar">
+              <span class="dot red"></span><span class="dot amber"></span><span class="dot green"></span>
+              <span class="panel-title micro">Better Class · gravando</span>
+              <span class="rec"><i></i>REC</span>
+            </div>
+            <div class="panel-body">
+              <div class="panel-live">
+                <div class="live-head between">
+                  <div>
+                    <div class="micro">Cálculo I · Integrais definidas</div>
+                    <div class="timer mono" id="demoTimer">00:42:15</div>
+                  </div>
+                  <span class="tag green"><span class="tag-dot"></span>em segundo plano</span>
+                </div>
+                <canvas class="wave" id="demoWave" height="54"></canvas>
+                <p class="caption" id="demoCaption">…então o teorema fundamental conecta derivada e integral…</p>
+              </div>
+              <div class="panel-arrow"><span></span><small class="micro">a IA assume</small><span></span></div>
+              <div class="panel-out">
+                <div class="out-card" data-out="0">
+                  <span class="tag blue">Resumo</span>
+                  <p>O teorema fundamental do cálculo liga derivação e integração: se F é primitiva de f, então ∫ₐᵇ f = F(b) − F(a).</p>
+                </div>
+                <div class="out-card" data-out="1">
+                  <span class="tag violet">Apontamentos</span>
+                  <ul><li>Parte 1: derivada da integral</li><li>Parte 2: cálculo por primitivas</li><li>Condição: f contínua em [a,b]</li></ul>
+                </div>
+                <div class="out-card" data-out="2">
+                  <span class="tag teal">Revisão</span>
+                  <p>12 flashcards · 6 questões · revisar hoje, em 3 e em 7 dias.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-glow"></div>
+      </div>
+    </div>
+
+    <div class="wrap stats" data-reveal="up" data-reveal-children>
+      <div class="stat"><strong data-count="92" data-suffix="%">0</strong><span class="small">do conteúdo da aula continua disponível depois</span></div>
+      <div class="stat"><strong data-count="3" data-suffix=" min">0</strong><span class="small">do fim da aula ao material pronto</span></div>
+      <div class="stat"><strong data-count="4" data-suffix="×">0</strong><span class="small">formatos gerados: resumo, apontamentos, cards e quiz</span></div>
+      <div class="stat"><strong data-count="0" data-suffix=" cliques">0</strong><span class="small">depois de apertar gravar</span></div>
+    </div>
+  </section>
+
+  <!-- ── Como funciona ─────────────────────────────────── -->
+  <section class="section" id="como">
+    <div class="wrap">
+      <header class="section-head" data-reveal="up">
+        <span class="eyebrow">Como funciona</span>
+        <h2 class="h1">Três passos. Você só participa do primeiro.</h2>
+        <p class="lead">Da chegada na sala até o material de revisão no seu bolso.</p>
+      </header>
+
+      <ol class="steps">
+        <li class="step glass" data-reveal="up" data-spotlight>
+          <div class="step-num">01</div>
+          <h3 class="h3">Aperte gravar e esqueça</h3>
+          <p class="muted">A gravação continua com a aba minimizada, com a tela bloqueada ou com você anotando em outro app.
+            Os pedaços de áudio sobem para o servidor a cada 15 segundos — se a internet cair ou o navegador fechar, nada se perde.</p>
+          <div class="step-art art-rec">
+            <span class="pulse-ring"></span><span class="pulse-ring d2"></span><span class="mic-dot"></span>
+          </div>
+        </li>
+        <li class="step glass" data-reveal="up" data-reveal-delay="90" data-spotlight>
+          <div class="step-num">02</div>
+          <h3 class="h3">A aula vira texto</h3>
+          <p class="muted">A transcrição acontece ao vivo no navegador enquanto o professor fala — e o servidor
+            pode reprocessar o áudio com Whisper se você ligar essa opção nas configurações.</p>
+          <div class="step-art art-text">
+            <span class="ln"></span><span class="ln"></span><span class="ln"></span><span class="ln"></span>
+          </div>
+        </li>
+        <li class="step glass" data-reveal="up" data-reveal-delay="180" data-spotlight>
+          <div class="step-num">03</div>
+          <h3 class="h3">A IA estuda por você</h3>
+          <p class="muted">Ao parar a gravação, a automação dispara sozinha: resumo, apontamentos por bloco,
+            glossário, flashcards com repetição espaçada, quiz e plano de revisão até o dia da prova.</p>
+          <div class="step-art art-ai">
+            <span class="chip">Resumo</span><span class="chip">Apontamentos</span><span class="chip">Flashcards</span><span class="chip">Quiz</span>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── Recursos ──────────────────────────────────────── -->
+  <section class="section" id="recursos">
+    <div class="wrap">
+      <header class="section-head" data-reveal="up">
+        <span class="eyebrow">Recursos</span>
+        <h2 class="h1">Tudo o que um bom monitor faria — <span class="gradient-text">sem você pedir</span>.</h2>
+      </header>
+      <div class="features">
+        <article class="feature glass" data-reveal="scale" data-spotlight data-tilt="6">
+          <div class="feature-icon blue">◉</div>
+          <h3 class="h3">Gravação resiliente</h3>
+          <p class="muted">Envio em pedaços, retomada automática, Wake Lock para a tela não dormir e aviso antes de fechar a aba.</p>
+        </article>
+        <article class="feature glass" data-reveal="scale" data-reveal-delay="60" data-spotlight data-tilt="6">
+          <div class="feature-icon violet">✎</div>
+          <h3 class="h3">Apontamentos estruturados</h3>
+          <p class="muted">A aula dividida em blocos com títulos, tópicos objetivos e glossário dos termos que o professor usou.</p>
+        </article>
+        <article class="feature glass" data-reveal="scale" data-reveal-delay="120" data-spotlight data-tilt="6">
+          <div class="feature-icon teal">↺</div>
+          <h3 class="h3">Repetição espaçada</h3>
+          <p class="muted">Flashcards agendados por um SM-2 enxuto: você revê exatamente no dia em que esqueceria.</p>
+        </article>
+        <article class="feature glass" data-reveal="scale" data-reveal-delay="180" data-spotlight data-tilt="6">
+          <div class="feature-icon rose">?</div>
+          <h3 class="h3">Quiz da prova</h3>
+          <p class="muted">Questões de múltipla escolha geradas a partir do que o professor enfatizou, com explicação da resposta.</p>
+        </article>
+        <article class="feature glass" data-reveal="scale" data-reveal-delay="240" data-spotlight data-tilt="6">
+          <div class="feature-icon amber">✦</div>
+          <h3 class="h3">Pergunte à aula</h3>
+          <p class="muted">“O que ele falou sobre rubisco?” — a resposta sai da transcrição da sua aula, não da internet.</p>
+        </article>
+        <article class="feature glass" data-reveal="scale" data-reveal-delay="300" data-spotlight data-tilt="6">
+          <div class="feature-icon green">↓</div>
+          <h3 class="h3">Leve para onde quiser</h3>
+          <p class="muted">Exporte tudo em Markdown para Notion, Obsidian ou papel. O áudio original fica salvo e navegável.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Automação ─────────────────────────────────────── -->
+  <section class="section pipeline-section" id="automacao">
+    <div class="wrap pipeline-grid">
+      <div class="pipeline-copy" data-reveal="left">
+        <span class="eyebrow">Automação</span>
+        <h2 class="h1">Uma esteira que roda sozinha.</h2>
+        <p class="lead">Parar a gravação é o gatilho. O servidor junta o áudio, transcreve, chama a IA e monta o material —
+          tudo com progresso ao vivo na tela e retomada automática se o servidor reiniciar no meio.</p>
+        <ul class="pipeline-notes">
+          <li><strong>Fila persistente.</strong> Cada etapa fica gravada no banco; nada se perde num restart.</li>
+          <li><strong>Eventos ao vivo.</strong> A interface acompanha por SSE, sem ficar perguntando ao servidor.</li>
+          <li><strong>Sempre entrega.</strong> Sem chave de IA, um motor local extrativo gera o material mesmo assim.</li>
+        </ul>
+      </div>
+      <div class="pipeline glass" data-reveal="right" id="pipeline">
+        <div class="pipe-step" data-step="0"><span class="pipe-dot"></span><div><strong>Gravação encerrada</strong><small>gatilho</small></div></div>
+        <div class="pipe-step" data-step="1"><span class="pipe-dot"></span><div><strong>Juntando os pedaços</strong><small>áudio único e navegável</small></div></div>
+        <div class="pipe-step" data-step="2"><span class="pipe-dot"></span><div><strong>Transcrevendo</strong><small>navegador ou Whisper</small></div></div>
+        <div class="pipe-step" data-step="3"><span class="pipe-dot"></span><div><strong>IA estudando</strong><small>resumo · apontamentos · revisão</small></div></div>
+        <div class="pipe-step" data-step="4"><span class="pipe-dot"></span><div><strong>Material publicado</strong><small>flashcards agendados</small></div></div>
+        <div class="pipe-line"><span id="pipeFill"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Revisão ───────────────────────────────────────── -->
+  <section class="section" id="revisao">
+    <div class="wrap review-grid">
+      <div class="flashcard-demo" data-reveal="scale">
+        <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Virar flashcard">
+          <div class="face front">
+            <span class="tag violet">Cálculo I</span>
+            <p class="h3">Qual a condição para aplicar o teorema fundamental do cálculo?</p>
+            <span class="micro">clique para virar</span>
+          </div>
+          <div class="face back">
+            <span class="tag teal">Resposta</span>
+            <p>f precisa ser contínua no intervalo fechado [a, b]. Aí ∫ₐᵇ f(x)dx = F(b) − F(a), com F primitiva de f.</p>
+            <div class="grades">
+              <span class="grade rose">Errei</span><span class="grade amber">Difícil</span>
+              <span class="grade blue">Bom</span><span class="grade green">Fácil</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="review-copy" data-reveal="right">
+        <span class="eyebrow">Revisão</span>
+        <h2 class="h1">Estudar vira rotina, não maratona.</h2>
+        <p class="lead">O app te entrega a fila do dia: o que vence hoje, o que está perto de esquecer e quantas questões faltam
+          para fechar a matéria. Semana de prova deixa de ser um susto.</p>
+        <div class="review-stats">
+          <div><strong>7</strong><span class="small">dias de sequência</span></div>
+          <div><strong>124</strong><span class="small">cards na sua coleção</span></div>
+          <div><strong>86%</strong><span class="small">de acerto no quiz</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────────────── -->
+  <section class="section cta-section">
+    <div class="wrap cta glass" data-reveal="scale" data-spotlight>
+      <h2 class="h1">A próxima aula pode ser a última que você perde.</h2>
+      <p class="lead">Crie sua conta, escolha a disciplina e aperte gravar. O Better Class cuida do depois.</p>
+      <div class="hero-cta center">
+        <a class="btn btn-primary btn-lg" href="/criar-conta" data-magnetic="0.3" data-ripple>Criar conta grátis</a>
+        <a class="btn btn-ghost btn-lg" href="/entrar" data-ripple>Já tenho conta</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap between footer-inner">
+    <div class="row gap-3">
+      <img src="/assets/logo.svg" alt="" width="22" height="22">
+      <span class="small">Better Class · feito para quem assiste aula e quer chegar inteiro na prova</span>
+    </div>
+    <div class="row gap-4 small muted">
+      <a href="#recursos">Recursos</a><a href="#automacao">Automação</a><a href="/entrar">Entrar</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/js/landing.js"></script>
+</body>
+</html>

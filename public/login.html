@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrar · Better Class</title>
+<meta name="description" content="Acesse sua conta do Better Class.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/auth.css">
+</head>
+<body class="auth-page">
+
+<div class="backdrop"><canvas id="aurora"></canvas></div>
+
+<main class="auth-shell">
+  <section class="auth-side">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="30" height="30">
+      <span>Better&nbsp;Class</span>
+    </a>
+    <div class="auth-pitch">
+      <h1 class="h1" id="pitchTitle">Sua aula continua trabalhando depois que acaba.</h1>
+      <p class="lead">Grave em segundo plano, receba resumo, apontamentos e revisão — e chegue na prova sabendo exatamente o que estudar.</p>
+      <ul class="auth-list">
+        <li><span>◉</span>Gravação que não se perde se a internet cair</li>
+        <li><span>✎</span>Apontamentos por bloco e glossário da aula</li>
+        <li><span>↺</span>Flashcards agendados por repetição espaçada</li>
+      </ul>
+    </div>
+    <p class="micro">Seus áudios e transcrições ficam no seu próprio servidor.</p>
+  </section>
+
+  <section class="auth-main">
+    <div class="auth-card glass" data-spotlight>
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" data-tab="login" role="tab" aria-selected="true">Entrar</button>
+        <button class="auth-tab" data-tab="register" role="tab" aria-selected="false">Criar conta</button>
+        <span class="auth-tab-pill" id="tabPill"></span>
+      </div>
+
+      <form class="auth-form" id="form" novalidate>
+        <div class="field" id="nameField" hidden>
+          <label for="name">Como te chamam</label>
+          <input class="input" id="name" name="name" autocomplete="name" placeholder="Ana Souza">
+        </div>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="voce@universidade.br" required>
+        </div>
+        <div class="field">
+          <label for="password">Senha</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="mínimo de 8 caracteres" required>
+        </div>
+
+        <p class="form-error" id="error" role="alert" hidden></p>
+
+        <button class="btn btn-primary btn-lg" type="submit" id="submit" data-ripple>
+          <span class="label">Entrar</span>
+        </button>
+        <p class="micro center" id="switchHint">Ainda não tem conta? <button type="button" class="linkish" data-goto="register">Criar agora</button></p>
+      </form>
+    </div>
+    <a class="btn btn-quiet back-home" href="/">← Voltar para a página inicial</a>
+  </section>
+</main>
+
+<div class="toasts" id="toasts"></div>
+<script type="module" src="/js/auth-page.js"></script>
+</body>
+</html>
