@@ -1,40 +1,40 @@
 /* ──────────────────────────────────────────────────────────
    Better Class — sistema de design
 
-   Ideia visual: caderno de aula com instrumentação de áudio.
-   Superfícies opacas como papel, fios de 1px como pauta,
-   números monoespaçados como cronômetro, e duas cores de sinal:
-   amarelo marca-texto para material de estudo, vermelho para
-   gravação. Nada de vidro, brilho ou gradiente decorativo.
+   Ideia visual: console de gravação. Preto profundo, âmbar de
+   mostrador e vermelho de REC. A profundidade vem de sombra e de
+   uma linha de luz na borda superior das peças, não de vidro
+   fosco. Números grandes e monoespaçados, como num gravador.
    ────────────────────────────────────────────────────────── */
 
 :root {
   color-scheme: dark;
 
-  /* Tinta */
-  --bg: #0f1012;
-  --bg-sunken: #0a0b0d;
-  --surface: #17181b;
-  --surface-raised: #1e2024;
-  --surface-hover: #212328;
-  --rule: rgba(255, 255, 255, .11);
-  --rule-strong: rgba(255, 255, 255, .2);
+  /* Preto de console */
+  --bg: #08090c;
+  --bg-sunken: #050609;
+  --surface: #101218;
+  --surface-raised: #171a21;
+  --surface-hover: #1c202a;
+  --rule: rgba(255, 255, 255, .08);
+  --rule-strong: rgba(255, 255, 255, .17);
+  --edge: rgba(255, 255, 255, .07);   /* luz na borda de cima das peças */
 
-  --text: #f3f2ef;
-  --text-2: #adaca6;   /* 8.4:1 sobre --bg */
-  --text-3: #8a8983;   /* 5.4:1 sobre --bg */
+  --text: #f4f3f0;
+  --text-2: #a9a8a3;   /* 8.6:1 sobre --bg */
+  --text-3: #86857f;   /* 5.5:1 sobre --bg */
 
-  /* Botão primário: tinta cheia, sem gradiente */
-  --fill: #f3f2ef;
-  --fill-text: #14151a;
+  /* Âmbar de mostrador: ação e material de estudo */
+  --marker: #f0b429;
+  --marker-ink: #0b0c10;
+  --marker-wash: rgba(240, 180, 41, .16);
+  --rec: #ef4a3c;                        /* gravação em curso */
+  --ok: #4fb277;
+  --warn: #e0a02c;
 
-  /* Cores de sinal, cada uma com um significado */
-  --marker: #e8b90c;                     /* material de estudo, destaque */
-  --marker-ink: #14151a;
-  --marker-wash: rgba(232, 185, 12, .18);
-  --rec: #e0483c;                        /* gravação em curso */
-  --ok: #55ab73;
-  --warn: #d79a2b;
+  /* Botão primário: âmbar cheio */
+  --fill: #f0b429;
+  --fill-text: #0b0c10;
 
   /* Disciplinas (dessaturadas de propósito) */
   --c1: #7e93c9;
@@ -43,16 +43,19 @@
   --c4: #77ad9c;
   --c5: #c4a36a;
 
-  /* Forma: cantos discretos, nada de pílula em tudo */
-  --r-sm: 5px;
-  --r-md: 9px;
-  --r-lg: 13px;
+  /* Forma */
+  --r-sm: 6px;
+  --r-md: 11px;
+  --r-lg: 18px;
+  --r-xl: 24px;
 
   /* Espaço: escala única, usada em todo lugar */
   --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
   --s5: 24px; --s6: 32px; --s7: 48px; --s8: 72px;
 
-  --shadow-pop: 0 18px 40px rgba(0, 0, 0, .45);
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, .4);
+  --shadow-2: 0 24px 60px rgba(0, 0, 0, .55), 0 4px 14px rgba(0, 0, 0, .4);
+  --shadow-pop: 0 30px 70px rgba(0, 0, 0, .6);
 
   /* Movimento: poucas curvas, sempre as mesmas */
   --ease: cubic-bezier(.2, .7, .2, 1);
@@ -86,8 +89,11 @@
 
   --fill: #16171a;
   --fill-text: #fbfaf7;
+  --edge: rgba(255, 255, 255, .85);
 
   --marker: #8a6500;   /* 5.4:1: serve para texto pequeno também */
+  --shadow-1: 0 1px 3px rgba(20, 21, 26, .1);
+  --shadow-2: 0 20px 50px rgba(20, 21, 26, .14), 0 3px 10px rgba(20, 21, 26, .07);
   --marker-wash: rgba(232, 185, 12, .34);
   --rec: #c33a2f;
   --ok: #3d8757;
@@ -141,12 +147,12 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Tipografia ──────────────────────────────────────────── */
 .display {
-  font-size: clamp(2.1rem, 4.6vw, 3.5rem);
-  line-height: 1.06;
-  letter-spacing: -0.026em;
-  font-weight: 600;
+  font-size: clamp(2.3rem, 4.6vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 620;
 }
-.h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.16; letter-spacing: -0.021em; font-weight: 600; }
+.h1 { font-size: clamp(1.75rem, 3.6vw, 2.7rem); line-height: 1.12; letter-spacing: -0.028em; font-weight: 620; }
 .h2 { font-size: 1.3rem; line-height: 1.26; letter-spacing: -0.016em; font-weight: 600; }
 .h3 { font-size: 1.02rem; line-height: 1.34; letter-spacing: -0.01em; font-weight: 600; }
 .lead { font-size: 1.08rem; line-height: 1.58; color: var(--text-2); }
@@ -165,14 +171,14 @@ a { color: inherit; text-decoration: none; }
 
 /* Marca-texto: a metáfora central do produto. Anima uma vez, sob comando. */
 .marked {
-  background-image: linear-gradient(var(--marker-wash), var(--marker-wash));
+  background-image: linear-gradient(var(--marker), var(--marker));
   background-repeat: no-repeat;
-  background-position: 0 84%;
-  background-size: 0% 38%;
+  background-position: 0 100%;
+  background-size: 0% 0.14em;
   transition: background-size var(--t-slow) var(--ease);
-  padding-inline: 2px;
+  padding-bottom: .06em;
 }
-.marked.is-on { background-size: 100% 38%; }
+.marked.is-on { background-size: 100% 0.14em; }
 @media (prefers-reduced-motion: reduce) { .marked { transition: none; } }
 
 /* ── Layout ──────────────────────────────────────────────── */
@@ -189,11 +195,20 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ── Superfícies: opacas, delimitadas por fio ────────────── */
+/* ── Superfícies ─────────────────────────────────────────── */
 .panel {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+/* Fio de luz no topo: a peça parece recortada, não desenhada. */
+.panel::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--edge) 22%, var(--edge) 78%, transparent);
+  pointer-events: none;
 }
 
 /* ── Botões ──────────────────────────────────────────────── */
@@ -210,8 +225,8 @@ a { color: inherit; text-decoration: none; }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-.btn-primary { background: var(--fill); color: var(--fill-text); }
-.btn-primary:hover { background: color-mix(in oklab, var(--fill) 86%, var(--marker)); }
+.btn-primary { background: var(--fill); color: var(--fill-text); font-weight: 560; }
+.btn-primary:hover { background: color-mix(in oklab, var(--fill) 88%, white); }
 
 .btn-outline { background: transparent; border-color: var(--rule-strong); color: var(--text); }
 .btn-outline:hover { background: var(--surface-hover); border-color: var(--text-3); }

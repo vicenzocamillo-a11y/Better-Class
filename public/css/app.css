@@ -156,11 +156,10 @@
 .rec-time { font-family: var(--mono); font-size: clamp(2.4rem, 6vw, 3.4rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
 .rec-signal { position: relative; min-height: 84px; display: grid; align-items: center; }
 .rec-signal::before { content: ""; height: 1px; background: var(--rule); }
-.rec-wave { position: absolute; inset: 0; width: 100%; height: 84px; color: var(--text-2); display: none; }
+.rec-wave { position: absolute; inset: 0; width: 100%; height: 84px; color: var(--marker); display: none; }
 .no-signal { font-size: .8rem; color: var(--text-3); position: absolute; top: calc(50% + 10px); left: 0; }
 .is-recording .rec-signal::before, .is-recording .no-signal { display: none; }
 .is-recording .rec-wave { display: block; }
-.is-recording .rec-wave { color: var(--rec); }
 .rec-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); }
 .rec-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); }
 
@@ -190,7 +189,7 @@
 .upload-log b { color: var(--ok); font-weight: 500; }
 
 /* Progresso da esteira */
-.job { display: grid; gap: var(--s2); padding: var(--s4); border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); }
+.job { position: relative; display: grid; gap: var(--s2); padding: var(--s4); border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--shadow-1); }
 .job .between { align-items: baseline; }
 
 /* ── Aula ────────────────────────────────────────────────── */
@@ -247,8 +246,9 @@ audio { width: 100%; max-width: 560px; }
 .study-card.is-flipped { transform: rotateY(180deg); }
 .study-card .face {
   position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  padding: var(--s5); border-radius: var(--r-md);
+  padding: var(--s5); border-radius: var(--r-lg);
   background: var(--surface); border: 1px solid var(--rule);
+  box-shadow: var(--shadow-2);
   display: grid; gap: var(--s3); align-content: center;
 }
 .study-card .back { transform: rotateY(180deg); }
@@ -304,7 +304,7 @@ audio { width: 100%; max-width: 560px; }
 }
 .modal {
   width: min(520px, 100%); padding: var(--s5); display: grid; gap: var(--s4);
-  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-lg);
+  background: var(--surface-raised); border: 1px solid var(--rule); border-radius: var(--r-lg);
   box-shadow: var(--shadow-pop);
 }
 .modal h3 { font-size: 1.1rem; font-weight: 600; }

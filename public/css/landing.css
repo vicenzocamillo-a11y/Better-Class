@@ -41,11 +41,11 @@
   grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
   gap: clamp(32px, 5vw, 64px);
   align-items: start;
-  padding-block: clamp(48px, 9vh, 104px) clamp(40px, 7vh, 88px);
+  padding-block: clamp(56px, 11vh, 132px) clamp(48px, 8vh, 96px);
 }
 @media (max-width: 940px) { .hero { grid-template-columns: 1fr; } }
 
-.hero-copy .display { max-width: 20ch; }
+.hero-copy .display { max-width: 18ch; }
 .hero-line { display: block; }
 @media not (prefers-reduced-motion: reduce) { .js .hero-line { opacity: 0; } }
 .hero-line + .hero-line { margin-top: 2px; }
@@ -60,16 +60,33 @@
 .specimen { display: grid; gap: var(--s2); }
 .specimen figcaption { order: -1; }
 
+.specimen-stage { position: relative; }
+/* A luz vem da própria tela do exemplo, fixa. Não segue o cursor. */
+.specimen-stage::before {
+  content: ""; position: absolute; z-index: -1;
+  inset: -14% -10% -22%;
+  background: radial-gradient(60% 50% at 50% 42%, rgba(240, 180, 41, .16), transparent 70%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+:root[data-theme="light"] .specimen-stage::before { display: none; }
+
 .rec-panel {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-2);
   padding: var(--s5);
   display: grid; gap: var(--s4);
 }
+.rec-panel::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge) 20%, var(--edge) 80%, transparent);
+}
 .rec-panel-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
-.rec-panel-top .mono { font-size: 1.6rem; font-weight: 500; letter-spacing: -0.02em; }
-.rec-panel-wave { width: 100%; height: 56px; color: var(--text-2); }
+.rec-panel-top .mono { font-size: 1.9rem; font-weight: 500; letter-spacing: -0.03em; }
+.rec-panel-wave { width: 100%; height: 56px; color: var(--marker); }
 .rec-panel-caption {
   min-height: 3.2em; font-size: .9rem; line-height: 1.6; color: var(--text-2);
   border-left: 2px solid var(--marker); padding-left: var(--s3);
@@ -127,11 +144,17 @@
 
 /* Ficha de estudo: papel pautado, canto discreto */
 .index-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
   padding: var(--s5);
   display: grid; gap: var(--s4);
+}
+.index-card::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge) 20%, var(--edge) 80%, transparent);
 }
 .index-card-q { font-size: 1.05rem; font-weight: 500; line-height: 1.4; }
 .index-card-a {
