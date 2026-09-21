@@ -40,6 +40,13 @@ ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL=claude-opus-5
 ```
 
+### Entrar com o Google (opcional)
+
+Com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` definidos, a tela de entrada mostra o
+botão "Continuar com o Google". Sem eles, o botão não aparece e o login por e-mail e
+senha segue normal. O passo a passo para criar as credenciais está no
+[DEPLOY.md](DEPLOY.md).
+
 ### Transcrição
 
 | Modo | Como funciona | Quando usar |

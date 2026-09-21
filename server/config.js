@@ -69,6 +69,12 @@ export const config = {
     url: process.env.ANTHROPIC_URL || 'https://api.anthropic.com/v1/messages',
     version: '2023-06-01',
   },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    // Opcional: por padrão o endereço de retorno é deduzido do próprio pedido.
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || '',
+  },
   transcribe: {
     url: process.env.TRANSCRIBE_URL || '',
     key: process.env.TRANSCRIBE_KEY || '',

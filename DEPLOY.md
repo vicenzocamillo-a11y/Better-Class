@@ -29,6 +29,7 @@ também não serve (dorme e não tem disco).
 | `HOST` | `0.0.0.0` | já é o padrão |
 | `ANTHROPIC_API_KEY` | `sk-ant-…` | opcional: sem ela, o motor local assume |
 | `ANTHROPIC_MODEL` | `claude-opus-5` | opcional |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | credenciais OAuth | opcional: liga o botão "Continuar com o Google" |
 | `TRANSCRIBE_URL` / `TRANSCRIBE_KEY` | endpoint Whisper | opcional |
 
 Se quiser definir o `SESSION_SECRET` você mesmo:
@@ -39,6 +40,23 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Sem terminal à mão, deixe a variável de fora — o servidor resolve sozinho, desde que o
 volume persistente esteja montado.
+
+### Entrar com o Google (opcional)
+
+O botão só aparece quando o servidor tem as credenciais. Para criá-las:
+
+1. No [Google Cloud Console](https://console.cloud.google.com/apis/credentials), crie um projeto.
+2. **Tela de permissão OAuth**: tipo externo, preencha nome do app e e-mail de contato.
+   Enquanto estiver em modo de teste, adicione seu e-mail em "Usuários de teste".
+3. **Criar credenciais → ID do cliente OAuth → Aplicativo da Web**.
+4. Em **URIs de redirecionamento autorizados**, acrescente exatamente:
+   `https://SEU-DOMINIO/api/auth/google/callback`
+   (e `http://localhost:3000/api/auth/google/callback` se for testar na sua máquina).
+5. Copie o ID e a chave secreta para `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`
+   nas variáveis da plataforma.
+
+Se alguém já tem conta com o mesmo e-mail, entrar pelo Google liga as duas em vez de
+criar uma conta repetida.
 
 ---
 

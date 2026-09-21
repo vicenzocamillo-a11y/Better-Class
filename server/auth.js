@@ -42,10 +42,42 @@ export function createUser({ name, email, password }) {
 
 export function authenticate(email, password) {
   const user = q.get('SELECT * FROM users WHERE email = ?', String(email || '').trim().toLowerCase());
+  if (user && !user.password_hash && user.google_id) {
+    throw bad('Essa conta entra pelo Google. Use o botão "Continuar com o Google".');
+  }
   if (!user || !verifyPassword(String(password || ''), user.password_hash)) {
     throw bad('E-mail ou senha incorretos.');
   }
   return user;
+}
+
+/**
+ * Conta vinda do Google. Se já existe uma conta com o mesmo e-mail,
+ * as duas são ligadas em vez de duplicar o aluno.
+ */
+export function upsertGoogleUser({ sub, email, name }) {
+  const byGoogle = q.get('SELECT * FROM users WHERE google_id = ?', sub);
+  if (byGoogle) return { user: byGoogle, created: false };
+
+  const byEmail = q.get('SELECT * FROM users WHERE email = ?', email);
+  if (byEmail) {
+    q.run('UPDATE users SET google_id = ? WHERE id = ?', sub, byEmail.id);
+    return { user: q.get('SELECT * FROM users WHERE id = ?', byEmail.id), created: false };
+  }
+
+  const user = {
+    id: uid('u_'),
+    name: String(name || '').trim().slice(0, 80) || email.split('@')[0],
+    email,
+    password_hash: '',   // sem senha: essa conta entra sempre pelo Google
+    settings: JSON.stringify({ autoPipeline: true, liveTranscript: true, theme: 'dark' }),
+    created_at: nowISO(),
+  };
+  q.run(
+    'INSERT INTO users (id, name, email, password_hash, settings, created_at, google_id) VALUES (?,?,?,?,?,?,?)',
+    user.id, user.name, user.email, user.password_hash, user.settings, user.created_at, sub,
+  );
+  return { user, created: true };
 }
 
 export function startSession(res, user) {
@@ -92,6 +124,8 @@ export function publicUser(user) {
     name: user.name,
     email: user.email,
     createdAt: user.created_at,
+    google: Boolean(user.google_id),
+    hasPassword: Boolean(user.password_hash),
     settings: (() => { try { return JSON.parse(user.settings || '{}'); } catch { return {}; } })(),
   };
 }

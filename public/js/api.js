@@ -17,6 +17,7 @@ async function request(path, options = {}) {
 export const api = {
   /* Conta */
   me: () => request('/api/me'),
+  authConfig: () => request('/api/auth/config'),
   register: (data) => request('/api/auth/register', { method: 'POST', ...json(data) }),
   login: (data) => request('/api/auth/login', { method: 'POST', ...json(data) }),
   logout: () => request('/api/auth/logout', { method: 'POST' }),

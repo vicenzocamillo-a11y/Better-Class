@@ -1,54 +1,63 @@
-.auth-page { min-height: 100dvh; display: grid; }
-.auth-shell {
-  width: 100%; max-width: 1180px; margin-inline: auto; padding: clamp(24px, 4vw, 48px) var(--gutter);
-  display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: center; min-height: 100dvh;
-}
-@media (max-width: 900px) {
-  .auth-shell { grid-template-columns: 1fr; gap: 36px; padding-block: 32px; }
-  .auth-side .auth-list, .auth-side .micro { display: none; }
-  .auth-pitch .h1 { font-size: 1.9rem; }
+/* Página de entrada: uma coluna, sem ornamento. O que importa aqui é
+   chegar ao app em dois cliques. */
+
+.auth { display: grid; place-items: center; min-height: 100dvh; padding: var(--s5) var(--gutter); }
+.auth-shell { width: 100%; max-width: 380px; display: grid; gap: var(--s5); justify-items: center; }
+.auth-brand { display: flex; align-items: center; gap: var(--s2); font-weight: 600; letter-spacing: -0.015em; }
+.auth-brand img { border-radius: 6px; }
+
+.auth-box {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: var(--s5);
+  display: grid; gap: var(--s4);
 }
 
-.auth-side { display: grid; gap: 28px; align-content: center; }
-.auth-side .brand { display: flex; align-items: center; gap: 10px; font-weight: 620; letter-spacing: -0.03em; }
-.auth-side .brand img { border-radius: 8px; }
-.auth-pitch { display: grid; gap: 16px; }
-.auth-pitch .h1 { max-width: 18ch; }
-.auth-pitch .lead { max-width: 46ch; }
-.auth-list { list-style: none; padding: 0; display: grid; gap: 12px; margin-top: 6px; }
-.auth-list li { display: flex; align-items: center; gap: 12px; color: var(--text-2); font-size: .94rem; }
-.auth-list span {
-  width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px;
-  background: color-mix(in oklab, var(--accent) 16%, transparent);
-  border: 1px solid color-mix(in oklab, var(--accent) 26%, transparent); color: var(--accent); font-size: .85rem;
+/* Alternador: indicador por fio embaixo, não por pílula */
+.auth-switch { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); }
+.auth-switch-btn {
+  padding: 9px 4px 11px; background: none; border: 0; cursor: pointer;
+  font-size: .94rem; font-weight: 500; color: var(--text-3);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.auth-switch-btn:hover { color: var(--text-2); }
+.auth-switch-btn.is-on { color: var(--text); border-bottom-color: var(--marker); }
+
+.auth-intro { font-size: .9rem; color: var(--text-2); line-height: 1.5; }
+
+/* Botão do Google, seguindo a identidade deles */
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px 16px; cursor: pointer;
+  font-size: .94rem; font-weight: 500; font-family: var(--font);
+  color: #1f1f1f; background: #fff;
+  border: 1px solid #dadce0; border-radius: var(--r-sm);
+  transition: background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.btn-google:hover { background: #f7f8f8; box-shadow: 0 1px 3px rgba(20, 21, 26, .18); }
+.btn-google:active { background: #eef0f1; }
+.btn-google:disabled { opacity: .6; cursor: progress; }
+:root:not([data-theme="light"]) .btn-google { color: #e3e3e3; background: #131314; border-color: #8e918f; }
+:root:not([data-theme="light"]) .btn-google:hover { background: #1c1c1e; }
+
+.auth-or {
+  display: flex; align-items: center; gap: var(--s3);
+  font-size: .8rem; color: var(--text-3);
+}
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+
+.auth-form { display: grid; gap: var(--s3); }
+.auth-form .btn { width: 100%; margin-top: var(--s1); }
+
+.auth-error {
+  padding: 9px 12px; border-radius: var(--r-sm); font-size: .86rem; line-height: 1.45;
+  color: var(--rec);
+  background: color-mix(in oklab, var(--rec) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--rec) 35%, transparent);
 }
 
-.auth-main { display: grid; gap: 14px; justify-items: center; }
-.auth-card { width: min(430px, 100%); padding: 30px 28px 26px; display: grid; gap: 20px; }
-
-.auth-tabs { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 4px;
-  background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-pill); }
-.auth-tab {
-  position: relative; z-index: 1; padding: 9px 12px; border: 0; background: transparent; cursor: pointer;
-  border-radius: var(--r-pill); font-size: .92rem; font-weight: 540; color: var(--text-2);
-  transition: color var(--dur) var(--ease-apple);
-}
-.auth-tab.active { color: var(--text); }
-.auth-tab-pill {
-  position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px);
-  border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--hairline);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-slow) var(--ease-apple);
-}
-.auth-tab-pill.right { transform: translateX(100%); }
-
-.auth-form { display: grid; gap: 15px; }
-.auth-form .btn { width: 100%; margin-top: 4px; }
-.form-error {
-  padding: 11px 14px; border-radius: var(--r-sm); font-size: .87rem;
-  background: color-mix(in oklab, var(--rose) 14%, transparent);
-  border: 1px solid color-mix(in oklab, var(--rose) 30%, transparent); color: #ffc2d3;
-}
-.linkish { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
-.linkish:hover { text-decoration: underline; }
-.back-home { color: var(--text-3); }
+.auth-foot a { color: var(--text-3); }
+.auth-foot a:hover { color: var(--text-2); text-decoration: underline; }

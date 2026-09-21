@@ -3,7 +3,7 @@
  * Roteamento por hash, views renderizadas em JS e progresso ao vivo por SSE.
  */
 import { animate, set, stagger, timeline, reducedMotion } from './motion.js';
-import { aurora, enhance, countUp, audioBars, spotlight, ripple } from './effects.js';
+import { enhance, countUp, audioBars } from './effects.js';
 import { api, listenEvents } from './api.js';
 import { LectureRecorder, formatDuration, speechSupported, pickMime } from './recorder.js';
 
@@ -53,7 +53,7 @@ function confirmDialog({ title, body, confirm = 'Confirmar', danger = false }) {
           <h3>${esc(title)}</h3>
           <p class="muted">${esc(body)}</p>
           <div class="modal-actions">
-            <button class="btn btn-ghost" data-no>Cancelar</button>
+            <button class="btn btn-outline" data-no>Cancelar</button>
             <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-yes>${esc(confirm)}</button>
           </div>
         </div>
@@ -85,11 +85,11 @@ const relativeDate = (iso) => {
 const minutesOf = (ms) => (ms >= 60000 ? `${Math.round(ms / 60000)} min` : `${Math.round(ms / 1000)} s`);
 
 const STATUS_TAG = {
-  recording: ['rose', 'gravando'],
-  processing: ['amber', 'processando'],
-  ready: ['green', 'pronta'],
-  needs_transcript: ['amber', 'falta transcrição'],
-  failed: ['rose', 'falhou'],
+  recording: ['tag-rec', 'gravando'],
+  processing: ['tag-warn', 'processando'],
+  ready: ['tag-ok', 'pronta'],
+  needs_transcript: ['tag-warn', 'falta transcrição'],
+  failed: ['tag-rec', 'falhou'],
 };
 
 /* ── Navegação ────────────────────────────────────────────── */
@@ -108,9 +108,9 @@ async function render() {
   const handler = routes[name] || routes.inicio;
 
   document.querySelectorAll('[data-nav]').forEach((link) => {
-    link.classList.toggle('active', link.dataset.nav === name || (name === 'aula' && link.dataset.nav === 'aulas'));
+    link.classList.toggle('is-on', link.dataset.nav === name || (name === 'aula' && link.dataset.nav === 'aulas'));
   });
-  document.querySelector('.sidebar')?.classList.remove('open');
+  document.getElementById('sidebar')?.classList.remove('is-open');
 
   if (currentView && !reducedMotion()) {
     await animate(currentView, { opacity: 0, translateY: -12, blur: 4, duration: 220, easing: 'appleIn' }).finished;
@@ -126,7 +126,7 @@ async function render() {
     await handler(node, params);
   } catch (error) {
     if (error.status === 401) { location.href = '/entrar'; return; }
-    node.appendChild(el(`<div class="empty"><div class="ring">!</div><p>${esc(error.message)}</p></div>`));
+    node.appendChild(el(`<div class="empty"><p>${esc(error.message)}</p></div>`));
   }
 
   animate(node, { opacity: 1, translateY: 0, blur: 0, duration: 620, easing: 'swift' });
@@ -177,10 +177,8 @@ async function boot() {
   }
 
   applySettings();
-  aurora(document.getElementById('aurora'), { blobs: 3, speed: 0.00008 });
 
   document.getElementById('userName').textContent = state.user.name;
-  document.getElementById('avatar').textContent = state.user.name.charAt(0).toUpperCase();
   document.getElementById('engineBadge').textContent = state.capabilities.ai ? 'IA: Claude' : 'IA: motor local';
 
   const [courses] = await Promise.all([api.courses(), refreshLectures(), refreshStats()]);
@@ -210,7 +208,7 @@ function applySettings() {
 
 function wireChrome() {
   document.getElementById('menuBtn')?.addEventListener('click', () => {
-    document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('sidebar').classList.toggle('is-open');
   });
 
   document.getElementById('logout').addEventListener('click', async () => {
@@ -234,7 +232,6 @@ function wireChrome() {
     }, 300);
   });
 
-  document.querySelectorAll('[data-ripple]').forEach(ripple);
 }
 
 /** Progresso da automação chegando do servidor. */
@@ -288,46 +285,55 @@ route('inicio', async (node) => {
     <section class="metrics">
       <div class="metric"><strong data-metric="${stats.lectures}">0</strong><span>aulas gravadas</span></div>
       <div class="metric"><strong data-metric="${stats.hoursRecorded}" data-decimals="1" data-suffix=" h">0</strong><span>de aula guardada</span></div>
-      <div class="metric"><strong data-metric="${stats.due}">0</strong><span>cards para revisar hoje</span>
-        <div class="spark">${sparkline(stats.activity)}</div></div>
+      <div class="metric${stats.due ? ' is-due' : ''}"><strong data-metric="${stats.due}">0</strong><span>cards vencendo hoje</span></div>
       <div class="metric"><strong data-metric="${stats.streak}">0</strong><span>dias seguidos estudando</span></div>
     </section>`));
 
-  node.appendChild(el(`
-    <section class="panel-card">
-      <div class="section-title"><h2>Próximo passo</h2></div>
-      <div class="cards">
-        <a class="lecture-card" href="#/gravar">
-          <h3>◉ Gravar a aula de agora</h3>
-          <p class="small muted">Deixa rodando em segundo plano. O material chega sozinho no fim.</p>
+  const next = el(`
+    <section class="block">
+      <div class="block-head"><h2>Próximo passo</h2></div>
+      <div class="lectures">
+        <a class="lecture-row" href="#/gravar">
+          <div><h3>Gravar a aula de agora</h3>
+            <div class="meta">a aba pode ficar minimizada enquanto o professor fala</div></div>
+          <span class="right micro">abrir</span>
         </a>
-        <a class="lecture-card" href="#/revisar">
-          <h3>↺ Revisar ${stats.due} card${stats.due === 1 ? '' : 's'}</h3>
-          <p class="small muted">${stats.due ? 'Vencem hoje — 5 minutos resolvem.' : 'Nada vencendo agora. Volte amanhã.'}</p>
-        </a>
-        <button class="lecture-card" data-import style="text-align:left">
-          <h3>⇪ Importar uma aula em texto</h3>
-          <p class="small muted">Já tem a transcrição ou as anotações? A IA monta o resto.</p>
+        ${stats.due ? `
+        <a class="lecture-row" href="#/revisar">
+          <div><h3>Revisar ${stats.due} card${stats.due === 1 ? '' : 's'}</h3>
+            <div class="meta">vencem hoje</div></div>
+          <span class="right micro">abrir</span>
+        </a>` : ''}
+        <button class="lecture-row" data-import>
+          <div><h3>Importar uma aula em texto</h3>
+            <div class="meta">cole a transcrição ou suas anotações e a IA monta o material</div></div>
+          <span class="right micro">abrir</span>
         </button>
       </div>
-    </section>`));
+    </section>`);
+  node.appendChild(next);
 
   node.appendChild(el(`
-    <section class="panel-card">
-      <div class="section-title"><h2>Atividade dos últimos 30 dias</h2><span class="micro">${stats.quizAccuracy === null ? 'sem quiz ainda' : `${stats.quizAccuracy}% de acerto no quiz`}</span></div>
+    <section class="block">
+      <div class="block-head"><h2>Atividade dos últimos 30 dias</h2>
+        <span class="micro">${stats.quizAccuracy === null ? 'nenhum quiz respondido ainda' : `${stats.quizAccuracy}% de acerto no quiz`}</span></div>
       <div class="heat">${stats.activity.map((day) => `<i data-level="${level(day.count)}" title="${day.day}: ${day.count} revisões"></i>`).join('')}</div>
     </section>`));
 
   const list = el(`
-    <section class="panel-card">
-      <div class="section-title"><h2>Aulas recentes</h2><a href="#/aulas">ver todas</a></div>
-      <div class="cards" data-recent></div>
+    <section class="block">
+      <div class="block-head"><h2>Aulas recentes</h2><a href="#/aulas">ver todas</a></div>
+      <div class="lectures" data-recent></div>
     </section>`);
   const container = list.querySelector('[data-recent]');
   if (!recent.length) {
-    container.appendChild(el(`<div class="empty"><div class="ring">◉</div><p>Nenhuma aula ainda. A primeira gravação leva 10 segundos para começar.</p><a class="btn btn-primary" href="#/gravar">Gravar agora</a></div>`));
+    container.appendChild(el(`
+      <div class="empty">
+        <p>Nenhuma aula gravada ainda. A primeira leva dez segundos para começar.</p>
+        <a class="btn btn-primary" href="#/gravar">Gravar agora</a>
+      </div>`));
   } else {
-    recent.forEach((lecture) => container.appendChild(lectureCard(lecture)));
+    recent.forEach((lecture) => container.appendChild(lectureRow(lecture)));
   }
   node.appendChild(list);
 
@@ -344,30 +350,28 @@ function hojeResumo() {
   return date.charAt(0).toUpperCase() + date.slice(1);
 }
 const level = (count) => (count === 0 ? 0 : count < 3 ? 1 : count < 8 ? 2 : count < 16 ? 3 : 4);
-const sparkline = (activity) => activity.slice(-14)
-  .map((day) => `<i style="height:${Math.min(100, 12 + day.count * 12)}%"></i>`).join('');
 
-function lectureCard(lecture) {
-  const [color, label] = STATUS_TAG[lecture.status] || ['blue', lecture.status];
+function lectureRow(lecture) {
+  const [tone, label] = STATUS_TAG[lecture.status] || ['', lecture.status];
   const job = lecture.job && lecture.status === 'processing' ? lecture.job : null;
-  const card = el(`
-    <article class="lecture-card" data-lecture="${lecture.id}" ${job ? `data-job-for="${lecture.id}"` : ''} data-spotlight>
-      <div class="lecture-meta">
-        <span class="tag ${color}"><span class="tag-dot"></span>${label}</span>
-        ${lecture.course ? `<span>${esc(lecture.course.name)}</span>` : ''}
-        <span>·</span><span>${relativeDate(lecture.startedAt)}</span>
+  const row = el(`
+    <button class="lecture-row" data-lecture="${lecture.id}" ${job ? `data-job-for="${lecture.id}"` : ''}>
+      <div>
+        <h3>${esc(lecture.title)}</h3>
+        <div class="meta">
+          ${lecture.course ? `<span>${esc(lecture.course.name)}</span><span>·</span>` : ''}
+          <span>${relativeDate(lecture.startedAt)}</span>
+          <span>·</span><span class="mono">${minutesOf(lecture.durationMs)}</span>
+          ${lecture.counts.cards ? `<span>·</span><span class="mono">${lecture.counts.cards} cards</span>` : ''}
+          ${lecture.counts.questions ? `<span>·</span><span class="mono">${lecture.counts.questions} questões</span>` : ''}
+        </div>
       </div>
-      <h3>${esc(lecture.title)}</h3>
-      <div class="lecture-meta">
-        <span>${minutesOf(lecture.durationMs)}</span>
-        ${lecture.counts.cards ? `<span>· ${lecture.counts.cards} cards</span>` : ''}
-        ${lecture.counts.questions ? `<span>· ${lecture.counts.questions} questões</span>` : ''}
-      </div>
-      ${job ? `<div class="lecture-progress"><i data-job-bar style="width:${job.progress}%"></i></div>
-               <small class="micro" data-job-step>${esc(job.step)}</small>` : ''}
-    </article>`);
-  card.addEventListener('click', () => { location.hash = `#/aula/${lecture.id}`; });
-  return card;
+      <span class="right"><span class="tag ${tone}"><span class="dot"></span>${label}</span></span>
+      ${job ? `<div class="progress"><i data-job-bar style="width:${job.progress}%"></i></div>
+               <span class="micro" data-job-step>${esc(job.step)}</span>` : ''}
+    </button>`);
+  row.addEventListener('click', () => { location.hash = `#/aula/${lecture.id}`; });
+  return row;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -382,14 +386,18 @@ route('gravar', async (node) => {
   const shell = el(`
     <div class="recorder">
       <section class="rec-stage">
-        <div class="rec-state">
-          <span class="pill" data-pill><i></i>pronto para gravar</span>
-          <span class="pill" data-uploads hidden>nada enviado ainda</span>
+        <div class="rec-status">
+          <span class="tag" data-pill>pronto para gravar</span>
+          <span class="tag" data-uploads hidden>nada enviado ainda</span>
         </div>
-        <div class="rec-timer mono" data-timer>00:00:00</div>
-        <canvas class="rec-wave" data-wave></canvas>
 
-        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+        <div class="rec-time" data-timer>00:00:00</div>
+        <div class="rec-signal">
+          <canvas class="rec-wave" data-wave aria-hidden="true"></canvas>
+          <p class="no-signal">sem sinal. O nível do microfone aparece aqui durante a gravação.</p>
+        </div>
+
+        <div class="rec-form">
           <div class="field">
             <label for="recTitle">Título da aula</label>
             <input class="input" id="recTitle" placeholder="ex.: Integrais definidas">
@@ -398,7 +406,7 @@ route('gravar', async (node) => {
             <label for="recCourse">Disciplina</label>
             <select class="select" id="recCourse">
               <option value="">Sem disciplina</option>${courseOptions}
-              <option value="__new">+ nova disciplina…</option>
+              <option value="__new">nova disciplina</option>
             </select>
           </div>
           <div class="field">
@@ -406,32 +414,32 @@ route('gravar', async (node) => {
             <select class="select" id="recSource">
               <option value="mic">Microfone (presencial)</option>
               <option value="tab">Áudio da aba (online)</option>
-              <option value="both">Microfone + aba</option>
+              <option value="both">Microfone e aba</option>
             </select>
           </div>
         </div>
 
         <div class="rec-controls">
           <button class="rec-button" data-toggle ${canRecord ? '' : 'disabled'} aria-label="Iniciar gravação"><span class="glyph"></span></button>
-          <div class="stack gap-2" style="justify-content:center">
-            <button class="btn btn-ghost" data-pause hidden>Pausar</button>
-            <button class="btn btn-ghost" data-stop hidden>Encerrar e processar</button>
-            <small class="micro" data-hint>${canRecord ? 'A gravação sobe em pedaços de 15s — se algo fechar, nada se perde.' : 'Este navegador não suporta gravação. Use Chrome, Edge ou Safari.'}</small>
-          </div>
+          <button class="btn btn-outline" data-pause hidden>Pausar</button>
+          <button class="btn btn-outline" data-stop hidden>Encerrar e processar</button>
+          <p class="rec-hint" data-hint>${canRecord
+            ? 'O áudio sobe em pedaços de 15 segundos. Se algo fechar, o que já subiu está salvo.'
+            : 'Este navegador não grava áudio. Use o Chrome, o Edge ou o Safari recente.'}</p>
         </div>
       </section>
 
       <aside class="rec-side">
-        <div class="live-transcript">
-          <div class="between">
-            <strong style="font-size:.95rem">Transcrição ao vivo</strong>
-            <span class="tag ${speechSupported() ? 'green' : 'amber'}"><span class="tag-dot"></span>${speechSupported() ? 'ligada' : 'indisponível neste navegador'}</span>
+        <div class="live-block">
+          <div class="block-head">
+            <h2>Transcrição ao vivo</h2>
+            <span class="micro">${speechSupported() ? 'ligada' : 'indisponível neste navegador'}</span>
           </div>
-          <div class="transcript-box" data-transcript><span class="muted small">O texto aparece aqui conforme o professor fala.</span></div>
+          <div class="transcript-live" data-transcript><span class="micro">O texto aparece aqui conforme o professor fala.</span></div>
         </div>
-        <div class="live-transcript">
-          <div class="between"><strong style="font-size:.95rem">Envio do áudio</strong><span class="micro" data-bytes>0 KB</span></div>
-          <div class="upload-log" data-log><span class="micro">nenhum pedaço enviado ainda</span></div>
+        <div class="live-block">
+          <div class="block-head"><h2>Envio do áudio</h2><span class="micro mono" data-bytes>0 KB</span></div>
+          <div class="upload-log" data-log><span data-empty>nenhum pedaço enviado ainda</span></div>
         </div>
       </aside>
     </div>`);
@@ -466,14 +474,11 @@ route('gravar', async (node) => {
     toast(`Disciplina "${course.name}" criada.`, 'ok');
   });
 
-  // A onda respira de leve mesmo parada — e passa a mostrar o áudio real ao gravar.
-  const idle = new Uint8Array(64);
+  // Mostra o nível real do microfone. Parado, a área fica em branco de propósito.
+  const silence = new Uint8Array(64);
   audioBars(ui.wave, () => {
     const recorder = state.recorder;
-    if (recorder && recorder.state === 'recording') return recorder.getLevels();
-    const time = Date.now() / 600;
-    for (let i = 0; i < idle.length; i++) idle[i] = 8 + Math.abs(Math.sin(time + i / 5)) * 14;
-    return idle;
+    return recorder && recorder.state === 'recording' ? recorder.getLevels() : silence;
   }, { bars: 56 });
 
   let totalBytes = 0;
@@ -492,12 +497,12 @@ route('gravar', async (node) => {
       const total = event.detail.index + 1;
       ui.uploads.textContent = total === 1 ? '1 pedaço enviado' : `${total} pedaços enviados`;
       const line = el(`<div><b>✓</b> pedaço ${event.detail.index + 1} · ${(event.detail.bytes / 1024).toFixed(0)} KB</div>`);
-      if (ui.log.firstElementChild?.classList.contains('micro')) ui.log.innerHTML = '';
+      ui.log.querySelector('[data-empty]')?.remove();
       ui.log.prepend(line);
       animate(line, { opacity: [0, 1], translateX: [-10, 0], duration: 400, easing: 'swift' });
     });
     recorder.addEventListener('retrying', (event) => {
-      toast(`Sem conexão — tentando enviar de novo em ${event.detail.wait / 1000}s`, 'warn', 2600);
+      toast(`Sem conexão. Tentando enviar de novo em ${event.detail.wait / 1000}s`, 'warn', 2600);
     });
     recorder.addEventListener('chunk-failed', () => {
       toast('Um pedaço do áudio não subiu. Vamos tentar de novo ao encerrar.', 'warn', 6000);
@@ -508,15 +513,16 @@ route('gravar', async (node) => {
   };
 
   const setRecordingUI = (recording, paused = false) => {
-    ui.toggle.classList.toggle('recording', recording);
+    ui.toggle.classList.toggle('is-live', recording);
     ui.toggle.setAttribute('aria-label', recording ? 'Encerrar gravação' : 'Iniciar gravação');
     ui.pause.hidden = !recording;
     ui.stop.hidden = !recording;
     ui.pause.textContent = paused ? 'Retomar' : 'Pausar';
-    ui.pill.className = `pill ${recording && !paused ? 'live' : ''}`;
+    ui.pill.className = `tag ${recording && !paused ? 'tag-rec' : ''}`;
     ui.pill.innerHTML = recording
-      ? `<i></i>${paused ? 'pausada' : 'gravando — pode minimizar'}`
-      : '<i></i>pronto para gravar';
+      ? `<span class="rec-dot${paused ? '' : ' is-live'}"></span>${paused ? 'pausada' : 'gravando, pode minimizar'}`
+      : 'pronto para gravar';
+    shell.classList.toggle('is-recording', recording && !paused);
     [ui.title, ui.course, ui.source].forEach((input) => { input.disabled = recording; });
   };
 
@@ -543,7 +549,7 @@ route('gravar', async (node) => {
         source: ui.source.value,
       });
       setRecordingUI(true);
-      ui.hint.textContent = 'Gravando. Pode fechar esta tela — mas não a aba.';
+      ui.hint.textContent = 'Gravando. Pode trocar de tela. Não feche a aba.';
       animate(ui.toggle, { scale: [1, 1.12, 1], duration: 680, easing: 'elastic.out' });
       toast('Gravação iniciada. Bom estudo!', 'ok');
       await refreshLectures();
@@ -597,40 +603,35 @@ route('aulas', async (node) => {
 
   const header = el(`
     <div class="between" style="margin-bottom:6px">
-      <div class="chips" data-filters></div>
-      <button class="btn btn-ghost btn-sm" data-import>Importar texto</button>
+      <div class="chips" data-filters role="group" aria-label="Filtrar por disciplina"></div>
+      <button class="btn btn-outline btn-sm" data-import>Importar texto</button>
     </div>`);
   const filters = header.querySelector('[data-filters]');
-  filters.appendChild(el('<button class="tag" data-course="">todas</button>'));
-  state.courses.forEach((course) => filters.appendChild(el(`<button class="tag ${course.color}" data-course="${course.id}">${esc(course.name)}</button>`)));
+  filters.appendChild(el('<button class="tag is-on" data-course="">todas</button>'));
+  state.courses.forEach((course) => filters.appendChild(el(`<button class="tag" data-course="${course.id}">${esc(course.name)}</button>`)));
   node.appendChild(header);
   header.querySelector('[data-import]').addEventListener('click', importDialog);
 
-  const grid = el('<div class="cards"></div>');
+  const grid = el('<div class="lectures"></div>');
   node.appendChild(grid);
 
   const draw = (courseId) => {
     grid.innerHTML = '';
     const list = courseId ? state.lectures.filter((item) => item.course?.id === courseId) : state.lectures;
     if (!list.length) {
-      grid.appendChild(el('<div class="empty"><div class="ring">▤</div><p>Nada por aqui ainda.</p><a class="btn btn-primary" href="#/gravar">Gravar uma aula</a></div>'));
+      grid.appendChild(el('<div class="empty"><p>Nenhuma aula nesta seleção.</p><a class="btn btn-primary" href="#/gravar">Gravar uma aula</a></div>'));
       return;
     }
-    list.forEach((lecture) => grid.appendChild(lectureCard(lecture)));
-    set([...grid.children], { opacity: 0, translateY: 18 });
-    animate([...grid.children], { opacity: 1, translateY: 0, duration: 700, delay: stagger(45), easing: 'swift' });
-    grid.querySelectorAll('[data-spotlight]').forEach(spotlight);
+    list.forEach((lecture) => grid.appendChild(lectureRow(lecture)));
   };
   draw('');
 
   filters.addEventListener('click', (event) => {
     const button = event.target.closest('[data-course]');
     if (!button) return;
-    filters.querySelectorAll('[data-course]').forEach((tag) => tag.style.opacity = '.55');
-    button.style.opacity = '1';
+    filters.querySelectorAll('[data-course]').forEach((tag) => tag.classList.toggle('is-on', tag === button));
     draw(button.dataset.course);
   });
-  filters.firstElementChild.style.opacity = '1';
 });
 
 async function importDialog() {
@@ -642,7 +643,7 @@ async function importDialog() {
         <div class="field"><label for="impTitle">Título</label><input class="input" id="impTitle" placeholder="ex.: Termodinâmica — 2ª lei"></div>
         <div class="field"><label for="impText">Conteúdo</label><textarea class="textarea" id="impText" rows="9" placeholder="Cole aqui…"></textarea></div>
         <div class="modal-actions">
-          <button class="btn btn-ghost" data-no>Cancelar</button>
+          <button class="btn btn-outline" data-no>Cancelar</button>
           <button class="btn btn-primary" data-yes>Gerar material</button>
         </div>
       </div>
@@ -681,20 +682,20 @@ route('aula', async (node, params) => {
   const { lecture, outputs, transcript, flashcards, questions } = data;
   setHeader(lecture.title, `${new Date(lecture.startedAt).toLocaleString('pt-BR')} · ${minutesOf(lecture.durationMs)}`);
 
-  const [color, label] = STATUS_TAG[lecture.status] || ['blue', lecture.status];
+  const [tone, label] = STATUS_TAG[lecture.status] || ['', lecture.status];
   const head = el(`
     <header class="lecture-head">
       <div class="lecture-meta">
-        <span class="tag ${color}"><span class="tag-dot"></span>${label}</span>
+        <span class="tag ${tone}"><span class="dot"></span>${label}</span>
         ${lecture.course ? `<span class="tag">${esc(lecture.course.name)}</span>` : ''}
-        ${outputs.meta?.engine ? `<span class="tag ${outputs.meta.engine === 'claude' ? 'violet' : ''}">${outputs.meta.engine === 'claude' ? 'gerado pelo Claude' : 'motor local'}</span>` : ''}
+        ${outputs.meta?.engine ? `<span class="tag">${outputs.meta.engine === 'claude' ? 'escrito pelo Claude' : 'motor local'}</span>` : ''}
         ${lecture.transcriptChars ? `<span class="micro">${lecture.transcriptChars.toLocaleString('pt-BR')} caracteres transcritos</span>` : ''}
       </div>
       <div class="title-row">
         <h2 contenteditable="plaintext-only" data-title>${esc(lecture.title)}</h2>
         <div class="lecture-actions">
-          <a class="btn btn-ghost btn-sm" href="${api.exportUrl(lecture.id)}" download>Exportar .md</a>
-          <button class="btn btn-ghost btn-sm" data-reprocess>Reprocessar</button>
+          <a class="btn btn-outline btn-sm" href="${api.exportUrl(lecture.id)}" download>Exportar .md</a>
+          <button class="btn btn-outline btn-sm" data-reprocess>Reprocessar</button>
           <button class="btn btn-danger btn-sm" data-delete>Apagar</button>
         </div>
       </div>
@@ -707,7 +708,7 @@ route('aula', async (node, params) => {
       <div class="job-card" data-job-for="${lecture.id}">
         <div class="between"><strong>A IA está montando seu material</strong><span class="micro" data-job-step>${esc(lecture.job?.step || 'na fila')}</span></div>
         <div class="job-bar"><i data-job-bar style="width:${lecture.job?.progress || 4}%"></i></div>
-        <small class="micro">Pode sair desta tela — avisamos quando ficar pronto.</small>
+        <small class="micro">Pode sair desta tela. Avisamos quando ficar pronto.</small>
       </div>`));
   }
   if (lecture.status === 'needs_transcript') {
@@ -735,14 +736,14 @@ route('aula', async (node, params) => {
     ['resumo', 'Resumo'],
     ['apontamentos', 'Apontamentos'],
     ['revisao', 'Revisão'],
-    ['cards', `Flashcards${flashcards.length ? ` (${flashcards.length})` : ''}`],
-    ['quiz', `Quiz${questions.length ? ` (${questions.length})` : ''}`],
+    ['cards', `Flashcards${flashcards.length ? ` <span class="count">${flashcards.length}</span>` : ''}`],
+    ['quiz', `Quiz${questions.length ? ` <span class="count">${questions.length}</span>` : ''}`],
     ['transcricao', 'Transcrição'],
     ['audio', 'Áudio'],
     ['perguntar', 'Perguntar'],
   ];
   const tabBar = el(`<div class="tabs">${tabs.map(([key, name], i) =>
-    `<button class="tab ${i === 0 ? 'active' : ''}" data-tab="${key}">${name}</button>`).join('')}</div>`);
+    `<button class="tab ${i === 0 ? 'is-on' : ''}" data-tab="${key}">${name}</button>`).join('')}</div>`);
   const panel = el('<div class="tab-panel"></div>');
   node.append(tabBar, panel);
 
@@ -751,7 +752,7 @@ route('aula', async (node, params) => {
     panel.appendChild(tabContent(key, data));
     set(panel, { opacity: 0, translateY: 12 });
     animate(panel, { opacity: 1, translateY: 0, duration: 520, easing: 'swift' });
-    const items = [...panel.querySelectorAll('.prose > *, .glossary > div, .quiz-question, .ask-item')].slice(0, 20);
+    const items = [...panel.querySelectorAll('.prose > *, .defs > div, .question, .ask-item')].slice(0, 20);
     if (items.length) {
       set(items, { opacity: 0, translateY: 14 });
       animate(items, { opacity: 1, translateY: 0, duration: 620, delay: stagger(45), easing: 'swift' });
@@ -762,7 +763,7 @@ route('aula', async (node, params) => {
   tabBar.addEventListener('click', (event) => {
     const tab = event.target.closest('.tab');
     if (!tab) return;
-    tabBar.querySelectorAll('.tab').forEach((item) => item.classList.toggle('active', item === tab));
+    tabBar.querySelectorAll('.tab').forEach((item) => item.classList.toggle('is-on', item === tab));
     renderTab(tab.dataset.tab);
   });
   renderTab(lecture.status === 'ready' ? 'resumo' : 'transcricao');
@@ -797,7 +798,7 @@ route('aula', async (node, params) => {
 
 function tabContent(key, data) {
   const { lecture, outputs, transcript, flashcards, questions } = data;
-  const empty = (text) => el(`<div class="empty"><div class="ring">·</div><p>${esc(text)}</p></div>`);
+  const empty = (text) => el(`<div class="empty"><p>${esc(text)}</p></div>`);
 
   if (key === 'resumo') {
     const summary = outputs.summary;
@@ -821,8 +822,8 @@ function tabContent(key, data) {
         ${sections.map((section) => `
           <h3>${esc(section.heading)}</h3>
           <ul>${section.bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`).join('')}
-        ${glossary.length ? `<h3>Glossário</h3><div class="glossary">${glossary.map((g) =>
-          `<div><strong>${esc(g.term)}</strong><p>${esc(g.definition)}</p></div>`).join('')}</div>` : ''}
+        ${glossary.length ? `<h3>Glossário</h3><dl class="defs">${glossary.map((g) =>
+          `<div><dt>${esc(g.term)}</dt><dd>${esc(g.definition)}</dd></div>`).join('')}</dl>` : ''}
       </div>`);
   }
 
@@ -844,8 +845,8 @@ function tabContent(key, data) {
       <div class="prose">
         <p class="small muted">Estes cards entram na sua fila de revisão espaçada.
           <a href="#/revisar" style="color:var(--accent)">Revisar agora →</a></p>
-        <div class="glossary">${flashcards.map((card) =>
-          `<div><strong>${esc(card.front)}</strong><p>${esc(card.back)}</p></div>`).join('')}</div>
+        <dl class="defs">${flashcards.map((card) =>
+          `<div><dt>${esc(card.front)}</dt><dd>${esc(card.back)}</dd></div>`).join('')}</dl>
       </div>`);
   }
 
@@ -857,7 +858,7 @@ function tabContent(key, data) {
   }
 
   if (key === 'transcricao') {
-    if (!transcript?.trim()) return empty('Sem transcrição — grave com a transcrição ao vivo ligada ou cole o texto da aula.');
+    if (!transcript?.trim()) return empty('Sem transcrição. Grave com a transcrição ao vivo ligada ou cole o texto da aula.');
     return el(`<div class="transcript-full">${esc(transcript)}</div>`);
   }
 
@@ -872,7 +873,7 @@ function tabContent(key, data) {
 
   if (key === 'perguntar') {
     return el(`
-      <div class="ask-box">
+      <div class="ask">
         <div class="field">
           <label for="askInput">Pergunte qualquer coisa sobre esta aula</label>
           <textarea class="textarea" id="askInput" rows="3" placeholder="ex.: o professor falou qual condição para o teorema?"></textarea>
@@ -882,15 +883,15 @@ function tabContent(key, data) {
         <div class="ask-log" data-ask-log></div>
       </div>`);
   }
-  return empty('—');
+  return empty('Nada para mostrar nesta aba.');
 }
 
 function questionCard(question, index, lectureId) {
   const card = el(`
-    <article class="quiz-question">
+    <article class="question">
       <div class="q">${index + 1}. ${esc(question.prompt)}</div>
       <div class="options">${question.options.map((option, i) =>
-        `<button class="option" data-option="${i}"><span class="key">${String.fromCharCode(65 + i)}</span>${esc(option)}</button>`).join('')}</div>
+        `<button class="option" data-option="${i}"><span class="key">${String.fromCharCode(65 + i)}</span><span>${esc(option)}</span></button>`).join('')}</div>
       <div class="explain" hidden></div>
     </article>`);
 
@@ -902,8 +903,8 @@ function questionCard(question, index, lectureId) {
     const correct = chosen === question.answer;
     card.querySelectorAll('.option').forEach((option, i) => {
       option.disabled = true;
-      if (i === question.answer) option.classList.add('correct');
-      else if (i === chosen) option.classList.add('wrong');
+      if (i === question.answer) option.classList.add('is-right');
+      else if (i === chosen) option.classList.add('is-wrong');
     });
     const explain = card.querySelector('.explain');
     explain.hidden = false;
@@ -955,24 +956,23 @@ route('revisar', async (node) => {
   if (!cards.length) {
     node.appendChild(el(`
       <div class="empty">
-        <div class="ring">↺</div>
         <p>Nada para revisar agora. A repetição espaçada traz os cards de volta no momento certo.</p>
-        <a class="btn btn-ghost" href="#/aulas">Ver minhas aulas</a>
+        <a class="btn btn-outline" href="#/aulas">Ver minhas aulas</a>
       </div>`));
     return;
   }
 
   const stage = el(`
     <div class="study">
-      <div class="study-progress"><i style="width:0%"></i></div>
-      <div class="between" style="width:100%">
-        <span class="micro" data-counter>1 de ${cards.length}</span>
+      <div class="study-top">
+        <span class="micro mono" data-counter>1 / ${cards.length}</span>
         <span class="micro" data-from></span>
       </div>
+      <div class="progress"><i style="width:0%"></i></div>
       <div class="card-stage">
         <div class="study-card" data-card tabindex="0" role="button" aria-label="Mostrar resposta">
-          <div class="face front"><span class="micro">pergunta</span><p class="q" data-front></p><span class="micro">clique ou espaço para virar</span></div>
-          <div class="face back"><span class="micro">resposta</span><p class="a" data-back></p></div>
+          <div class="face front"><span class="label">pergunta</span><p class="q" data-front></p><span class="micro">clique ou tecle espaço para virar</span></div>
+          <div class="face back"><span class="label">resposta</span><p class="a" data-back></p></div>
         </div>
       </div>
       <div class="grade-row" data-grades hidden>
@@ -990,7 +990,7 @@ route('revisar', async (node) => {
   const grades = stage.querySelector('[data-grades]');
   const counter = stage.querySelector('[data-counter]');
   const from = stage.querySelector('[data-from]');
-  const progress = stage.querySelector('.study-progress i');
+  const progress = stage.querySelector('.progress i');
 
   let index = 0;
   const show = (i) => {
@@ -998,16 +998,16 @@ route('revisar', async (node) => {
     front.textContent = item.front;
     back.textContent = item.back;
     from.textContent = item.lecture.title;
-    counter.textContent = `${i + 1} de ${cards.length}`;
+    counter.textContent = `${i + 1} / ${cards.length}`;
     progress.style.width = `${(i / cards.length) * 100}%`;
-    card.classList.remove('flipped');
+    card.classList.remove('is-flipped');
     grades.hidden = true;
     animate(card, { opacity: [0, 1], translateY: [22, 0], scale: [0.97, 1], duration: 620, easing: 'swift' });
   };
 
   const flip = () => {
-    card.classList.toggle('flipped');
-    if (card.classList.contains('flipped')) {
+    card.classList.toggle('is-flipped');
+    if (card.classList.contains('is-flipped')) {
       grades.hidden = false;
       set([...grades.children], { opacity: 0, translateY: 12 });
       animate([...grades.children], { opacity: 1, translateY: 0, duration: 480, delay: stagger(50), easing: 'swift' });
@@ -1026,11 +1026,10 @@ route('revisar', async (node) => {
       await refreshStats();
       stage.replaceWith(el(`
         <div class="empty">
-          <div class="ring">✓</div>
           <p><strong>${cards.length} cards revisados.</strong> Os que você errou voltam em minutos; os fáceis, só daqui a dias.</p>
           <div class="row gap-2">
             <a class="btn btn-primary" href="#/quiz">Fazer um quiz</a>
-            <a class="btn btn-ghost" href="#/inicio">Voltar ao início</a>
+            <a class="btn btn-outline" href="#/inicio">Voltar ao início</a>
           </div>
         </div>`));
       return;
@@ -1048,7 +1047,7 @@ route('revisar', async (node) => {
   });
   const keys = (event) => {
     if (!document.body.contains(stage)) return document.removeEventListener('keydown', keys);
-    if (!card.classList.contains('flipped')) return;
+    if (!card.classList.contains('is-flipped')) return;
     if (['1', '2', '3', '4'].includes(event.key)) grade(Number(event.key) - 1);
   };
   document.addEventListener('keydown', keys);
@@ -1066,7 +1065,7 @@ route('quiz', async (node) => {
 
   if (!questions.length) {
     node.appendChild(el(`
-      <div class="empty"><div class="ring">?</div>
+      <div class="empty">
         <p>As questões nascem das suas aulas processadas. Grave (ou importe) uma aula para começar.</p>
         <a class="btn btn-primary" href="#/gravar">Gravar aula</a>
       </div>`));
@@ -1095,57 +1094,57 @@ route('ajustes', async (node) => {
 
   const box = el(`
     <div class="settings">
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Processar automaticamente ao encerrar</strong>
           <small>Assim que você para a gravação, a esteira de IA dispara sozinha.</small></div>
         <label class="switch"><input type="checkbox" data-set="autoPipeline" ${settings.autoPipeline !== false ? 'checked' : ''}><span class="track"></span></label>
       </div>
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Transcrição ao vivo no navegador</strong>
-          <small>${speechSupported() ? 'Transcreve enquanto o professor fala, sem custo de API.' : 'Seu navegador não tem essa API — use Chrome ou Edge.'}</small></div>
+          <small>${speechSupported() ? 'Transcreve enquanto o professor fala, sem custo de API.' : 'Seu navegador não tem essa API. Use o Chrome ou o Edge.'}</small></div>
         <label class="switch"><input type="checkbox" data-set="liveTranscript" ${settings.liveTranscript !== false ? 'checked' : ''} ${speechSupported() ? '' : 'disabled'}><span class="track"></span></label>
       </div>
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Tamanho do pedaço de áudio</strong>
           <small>De quanto em quanto tempo o áudio sobe para o servidor.</small></div>
         <select class="select" data-set="chunkSeconds">
           ${[10, 15, 30, 60].map((n) => `<option value="${n}" ${Number(settings.chunkSeconds || 15) === n ? 'selected' : ''}>${n}s</option>`).join('')}
         </select>
       </div>
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Tema</strong><small>Escuro combina com sala de aula à noite.</small></div>
         <select class="select" data-set="theme">
           <option value="dark" ${settings.theme !== 'light' ? 'selected' : ''}>Escuro</option>
           <option value="light" ${settings.theme === 'light' ? 'selected' : ''}>Claro</option>
         </select>
       </div>
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Reduzir animações</strong><small>Desliga os movimentos mais longos da interface.</small></div>
         <label class="switch"><input type="checkbox" data-set="reduceMotion" ${settings.reduceMotion ? 'checked' : ''}><span class="track"></span></label>
       </div>
 
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Motor de IA</strong>
           <small>${state.capabilities.ai
-            ? 'Claude conectado — resumos e questões gerados pela IA.'
+            ? 'Claude conectado. Os resumos e as questões são escritos pela IA.'
             : 'Sem ANTHROPIC_API_KEY: usando o motor local extrativo. Configure a chave no .env do servidor para ligar o Claude.'}</small></div>
-        <span class="tag ${state.capabilities.ai ? 'green' : 'amber'}"><span class="tag-dot"></span>${state.capabilities.ai ? 'Claude' : 'local'}</span>
+        <span class="tag ${state.capabilities.ai ? 'tag-ok' : ''}"><span class="dot"></span>${state.capabilities.ai ? 'Claude' : 'motor local'}</span>
       </div>
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Transcrição no servidor</strong>
           <small>${state.capabilities.serverTranscription
-            ? 'Whisper configurado — o áudio é reprocessado no servidor quando a transcrição do navegador falha.'
+            ? 'Whisper configurado. O áudio é reprocessado no servidor quando a transcrição do navegador vem curta.'
             : 'Desligada. Defina TRANSCRIBE_URL e TRANSCRIBE_KEY no .env para ativar.'}</small></div>
-        <span class="tag ${state.capabilities.serverTranscription ? 'green' : ''}"><span class="tag-dot"></span>${state.capabilities.serverTranscription ? 'ligada' : 'desligada'}</span>
+        <span class="tag ${state.capabilities.serverTranscription ? 'tag-ok' : ''}"><span class="dot"></span>${state.capabilities.serverTranscription ? 'ligada' : 'desligada'}</span>
       </div>
 
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Disciplinas</strong><small>${state.courses.map((c) => esc(c.name)).join(' · ') || 'nenhuma ainda'}</small></div>
-        <button class="btn btn-ghost btn-sm" data-add-course>Adicionar</button>
+        <button class="btn btn-outline btn-sm" data-add-course>Adicionar</button>
       </div>
-      <div class="setting-row">
+      <div class="setting">
         <div class="txt"><strong>Conta</strong><small>${esc(state.user.email)} · desde ${new Date(state.user.createdAt).toLocaleDateString('pt-BR')}</small></div>
-        <button class="btn btn-ghost btn-sm" data-logout>Sair</button>
+        <button class="btn btn-outline btn-sm" data-logout>Sair</button>
       </div>
     </div>`);
   node.appendChild(box);

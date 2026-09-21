@@ -134,6 +134,16 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE INDEX IF NOT EXISTS idx_jobs_lecture ON jobs(lecture_id, created_at DESC);
 `);
 
+/* ── Migrações ─────────────────────────────────────────────
+   O esquema acima cria o banco do zero; aqui ficam as colunas
+   acrescentadas depois, para bancos que já existem. */
+function addColumn(table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  if (!columns.includes(column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+addColumn('users', 'google_id', 'TEXT');
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google ON users(google_id) WHERE google_id IS NOT NULL;');
+
 export const nowISO = () => new Date().toISOString();
 export const uid = (prefix = '') => prefix + crypto.randomUUID().replace(/-/g, '').slice(0, 20);
 
